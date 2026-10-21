@@ -8,6 +8,8 @@ import Preloader from './components/ui/Preloader';
 import HeroHelix from './components/3d/HeroHelix';
 import CosmicStarfield from './components/3d/CosmicStarfield';
 import MyApproach from './components/ui/MyApproach';
+import EditorialIntro from './components/ui/EditorialIntro';
+import HistoryJourney from './components/ui/HistoryJourney';
 import AboutPage from './components/ui/AboutPage';
 import './App.css';
 
@@ -193,6 +195,8 @@ export default function App() {
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true
     });
+
+    lenis.on('scroll', ScrollTrigger.update);
 
     function raf(time) {
       lenis.raf(time);
@@ -403,6 +407,50 @@ export default function App() {
             }}
           >
             Approach
+          </span>
+          <span
+            className="nav-link"
+            onClick={() => {
+              if (currentView !== 'home') {
+                navigateTo('home');
+                setTimeout(() => {
+                  document.getElementById('section-editorial')?.scrollIntoView({ behavior: 'smooth' });
+                }, 150);
+              } else {
+                document.getElementById('section-editorial')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            onMouseEnter={onHover}
+            onMouseLeave={onLeave}
+            style={{
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.6)',
+              paddingBottom: '2px'
+            }}
+          >
+            Statement
+          </span>
+          <span
+            className="nav-link"
+            onClick={() => {
+              if (currentView !== 'home') {
+                navigateTo('home');
+                setTimeout(() => {
+                  document.getElementById('section-history')?.scrollIntoView({ behavior: 'smooth' });
+                }, 150);
+              } else {
+                document.getElementById('section-history')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            onMouseEnter={onHover}
+            onMouseLeave={onLeave}
+            style={{
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.6)',
+              paddingBottom: '2px'
+            }}
+          >
+            History
           </span>
           <span
             className="nav-link"
@@ -725,6 +773,20 @@ export default function App() {
 
             {/* SECTION 3: 03 / MY APPROACH — EDITORIAL 4-CARD PAPER SHEET */}
             <MyApproach
+              isMobile={isMobile}
+              onHover={onHover}
+              onLeave={onLeave}
+            />
+
+            {/* SECTION 4: EDITORIAL SCROLL REVEAL (BLACK & WHITE STATEMENT) */}
+            <EditorialIntro
+              isMobile={isMobile}
+              onHover={onHover}
+              onLeave={onLeave}
+            />
+
+            {/* SECTION 5: TIMELINE & CAREER TRAJECTORY (AUTO-FOLLOWING CAMERA PATH) */}
+            <HistoryJourney
               isMobile={isMobile}
               onHover={onHover}
               onLeave={onLeave}

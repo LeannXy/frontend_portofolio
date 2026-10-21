@@ -308,7 +308,7 @@ export default function MyApproach({ isMobile, onHover, onLeave }) {
                 transition: 'opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s cubic-bezier(0.16, 1, 0.3, 1)'
               }}
             >
-              {/* EFEK HOVER: Background Putih Solid Muncul dari Bawah ke Atas (Bottom to Top) */}
+              {/* EFEK HOVER: Putih naik dari bawah. EXIT: Putih keluar ke atas (hitam muncul dari bawah) */}
               <div
                 style={{
                   position: 'absolute',
@@ -316,9 +316,9 @@ export default function MyApproach({ isMobile, onHover, onLeave }) {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  backgroundColor: '#ffffff', // Putih solid murni saat hover
+                  backgroundColor: '#ffffff',
                   transform: isHovered ? 'scaleY(1) translateZ(0)' : 'scaleY(0) translateZ(0)',
-                  transformOrigin: 'bottom',
+                  transformOrigin: isHovered ? 'bottom' : 'top',
                   transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
                   willChange: 'transform',
                   zIndex: 1,
