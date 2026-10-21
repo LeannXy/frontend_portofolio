@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { motion, AnimatePresence } from 'framer-motion';
+import HistoryEnding from './HistoryEnding';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -92,6 +93,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
 
   const [pathLength, setPathLength] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [expansionProgress, setExpansionProgress] = useState(0); // 0.0 s/d 1.0 saat jalur mentok
   const [activeMilestoneId, setActiveMilestoneId] = useState(0);
   const [selectedMilestone, setSelectedMilestone] = useState(null); // Modal detail bila diklik
   const [travelerPos, setTravelerPos] = useState({ x: 150, y: 420 });
@@ -130,7 +132,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
       ScrollTrigger.create({
         trigger: container,
         start: 'top top',
-        end: isMobile ? '+=280%' : '+=380%', // Jalur scroll panjang untuk pergerakan kamera sinematik
+        end: isMobile ? '+=360%' : '+=520%', // Jalur scroll ekstra panjang untuk akomodasi pembesaran lingkaran dramatis
         pin: true,
         pinSpacing: true,
         scrub: 1.1, // Gerakan kamera halus dengan inersia
@@ -139,31 +141,33 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
           const p = self.progress;
           setScrollProgress(p);
 
-          // 1. Ambil koordinat titik pada garis
-          const currentDist = p * pathLength;
+          // 1. Fase Penelusuran Garis (0.0 s/d 0.78): Titik berjalan di sepanjang kurva hingga mentok
+          const pathRatio = Math.min(1, p / 0.78);
+          const currentDist = pathRatio * pathLength;
           const pt = path.getPointAtLength(currentDist);
           setTravelerPos({ x: pt.x, y: pt.y });
 
           // 2. Kamera otomatis mengikuti titik (Layar selalu memusatkan titik yang sedang berjalan)
           const winW = window.innerWidth;
           const winH = window.innerHeight;
-
-          // Target translasi agar titik berada di tengah layar
           const targetCamX = -(pt.x - winW / 2);
           const targetCamY = -(pt.y - winH / 2);
 
-          // Terapkan translasi ke world container secara GPU-accelerated
           gsap.set(world, {
             x: targetCamX,
             y: targetCamY,
             force3D: true,
           });
 
-          // 3. Deteksi milestone aktif berdasarkan kedekatan rasio scroll
+          // 3. Fase Pembesaran Lingkaran (0.78 s/d 0.94): Saat jalur sudah mentok di ujung, lingkaran membesar memenuhi layar
+          const exp = p <= 0.78 ? 0 : Math.min(1, (p - 0.78) / 0.16);
+          setExpansionProgress(exp);
+
+          // 4. Deteksi milestone aktif berdasarkan kedekatan rasio garis
           let closest = TIMELINE_DATA[0];
           let minDiff = 999;
           TIMELINE_DATA.forEach((item) => {
-            const diff = Math.abs(p - item.ratio);
+            const diff = Math.abs(pathRatio - item.ratio);
             if (diff < minDiff) {
               minDiff = diff;
               closest = item;
@@ -183,7 +187,9 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
     if (!containerRef.current) return;
     const scrollTriggerInstance = ScrollTrigger.getById(containerRef.current.id) || ScrollTrigger.getAll().find(st => st.trigger === containerRef.current);
     if (scrollTriggerInstance) {
-      const targetScroll = scrollTriggerInstance.start + (scrollTriggerInstance.end - scrollTriggerInstance.start) * ratio;
+      // 1.0 rasio garis = 0.78 scroll progress
+      const mappedScrollProgress = ratio * 0.78;
+      const targetScroll = scrollTriggerInstance.start + (scrollTriggerInstance.end - scrollTriggerInstance.start) * mappedScrollProgress;
       window.scrollTo({ top: targetScroll, behavior: 'smooth' });
     }
   };
@@ -233,7 +239,9 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
           justifyContent: 'space-between',
           alignItems: 'center',
           zIndex: 50,
-          pointerEvents: 'none'
+          pointerEvents: expansionProgress > 0.25 ? 'none' : 'auto',
+          opacity: Math.max(0, 1 - expansionProgress * 2.8),
+          transition: 'opacity 0.2s ease'
         }}
       >
         <div>
@@ -319,7 +327,9 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
           justifyContent: 'space-between',
           alignItems: 'flex-end',
           zIndex: 50,
-          pointerEvents: 'none'
+          pointerEvents: 'none',
+          opacity: Math.max(0, 1 - expansionProgress * 2.8),
+          transition: 'opacity 0.2s ease'
         }}
       >
         {/* Active Chapter Indicator */}
@@ -732,16 +742,18 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
             zIndex: 35
           }}
         >
-          {/* Main Traveler Solid White Core */}
+          {/* Main Traveler Solid White Core (Membesar dramatis saat jalur mentok) */}
           <div
             style={{
               width: '24px',
               height: '24px',
               borderRadius: '50%',
               backgroundColor: '#ffffff',
-              boxShadow: '0 0 25px #ffffff, 0 0 60px rgba(255, 255, 255, 0.9), 0 0 100px rgba(255, 255, 255, 0.6)',
+              boxShadow: `0 0 ${25 + expansionProgress * 120}px #ffffff, 0 0 ${60 + expansionProgress * 250}px rgba(255, 255, 255, 0.9), 0 0 ${100 + expansionProgress * 400}px rgba(255, 255, 255, 0.6)`,
               border: '4px solid #000000',
-              position: 'relative'
+              position: 'relative',
+              transform: `scale(${1 + Math.pow(expansionProgress, 2.5) * 60})`,
+              transition: 'transform 0.05s linear, box-shadow 0.1s linear'
             }}
           />
 
@@ -755,11 +767,30 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
               height: '56px',
               borderRadius: '50%',
               border: '1px dashed rgba(255, 255, 255, 0.5)',
+              opacity: Math.max(0, 1 - expansionProgress * 2),
               animation: 'spinOrbit 6s linear infinite'
             }}
           />
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* EXPANDING CIRCLE PORTAL & ENDING FINALE SECTION                           */}
+      {/* ========================================================================= */}
+      <HistoryEnding
+        expansionProgress={expansionProgress}
+        isFullyActive={scrollProgress >= 0.94}
+        onReplay={() => {
+          if (!containerRef.current) return;
+          const st = ScrollTrigger.getAll().find(s => s.trigger === containerRef.current);
+          if (st) {
+            window.scrollTo({ top: st.start, behavior: 'smooth' });
+          }
+        }}
+        isMobile={isMobile}
+        onHover={onHover}
+        onLeave={onLeave}
+      />
 
       {/* ========================================================================= */}
       {/* MODAL PENCAPAIAN DETAIL SAAT KARTU MILSTONE DIKLIK                      */}

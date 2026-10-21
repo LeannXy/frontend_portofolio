@@ -237,6 +237,20 @@ export default function App() {
       // Animasi media sosial di sudut bawah
       gsap.to('.soc-li', { y: -25, x: 130, scrollTrigger: heroScrollConfig });
       gsap.to('.soc-ig', { y: -25, x: -140, scrollTrigger: heroScrollConfig });
+
+      // Animasi saat masuk dari Session 2 ke 3 (My Approach): social links menghilang halus
+      gsap.to('.soc-gh, .soc-li, .soc-tk, .soc-ig', {
+        y: 35,
+        opacity: 0,
+        filter: 'blur(8px)',
+        pointerEvents: 'none',
+        scrollTrigger: {
+          trigger: '#section-approach',
+          start: 'top 85%',
+          end: 'top 45%',
+          scrub: true
+        }
+      });
     });
 
     mm.add("(max-width: 767px)", () => {
