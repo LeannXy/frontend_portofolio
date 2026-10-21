@@ -1,720 +1,912 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Float, MeshDistortMaterial } from '@react-three/drei';
-import * as THREE from 'three';
-
-// Komponen 3D Interaktif untuk Halaman About (Cybernetic PPLG Core)
-function CyberCore({ activeMode }) {
-  const meshRef = useRef();
-  const wireRef = useRef();
-
-  useFrame((state, delta) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x += delta * 0.4;
-      meshRef.current.rotation.y += delta * 0.6;
-    }
-    if (wireRef.current) {
-      wireRef.current.rotation.x -= delta * 0.3;
-      wireRef.current.rotation.y -= delta * 0.5;
-    }
-  });
-
-  return (
-    <Float speed={2.5} rotationIntensity={1.5} floatIntensity={2}>
-      <group>
-        {/* Core Geometry */}
-        <mesh ref={meshRef}>
-          <icosahedronGeometry args={[2.2, 0]} />
-          <MeshDistortMaterial
-            color={activeMode === 'software' ? '#3b82f6' : '#10b981'}
-            emissive={activeMode === 'software' ? '#1d4ed8' : '#047857'}
-            emissiveIntensity={0.6}
-            roughness={0.2}
-            metalness={0.8}
-            distort={0.35}
-            speed={2}
-          />
-        </mesh>
-
-        {/* Outer Wireframe Cage (Simbol Logika PPLG & Struktur Game Mesh) */}
-        <mesh ref={wireRef}>
-          <octahedronGeometry args={[3.2, 0]} />
-          <meshBasicMaterial
-            wireframe
-            color={activeMode === 'software' ? '#93c5fd' : '#6ee7b7'}
-            transparent
-            opacity={0.35}
-          />
-        </mesh>
-
-        <pointLight
-          color={activeMode === 'software' ? '#ffffff' : '#34d399'}
-          intensity={3}
-          distance={10}
-        />
-      </group>
-    </Float>
-  );
-}
 
 export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) {
-  // Pilihan Mode Dual PPLG: 'software' (Perangkat Lunak) vs 'game' (Gim & Interaktivitas)
-  const [activeMode, setActiveMode] = useState('software');
-  const [terminalOutput, setTerminalOutput] = useState([
-    "Billean OS v2.6.0 [PPLG Kernel Loaded]",
-    "Identity: Billean Uji Prakasa",
-    "Specialization: Software Engineering × Game Mechanics",
-    "Status: System Operational • Ready for exploration"
-  ]);
-  const [selectedSkillCategory, setSelectedSkillCategory] = useState('all');
+  // Foto Profil: Menggunakan default /profile.jpg atau foto kustom yang diunggah pengguna (disimpan di localStorage)
+  const [profileImage, setProfileImage] = useState(() => {
+    return localStorage.getItem('billean_custom_portrait') || '/profile.jpg';
+  });
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [hoveredCard, setHoveredCard] = useState(null);
+  const fileInputRef = useRef(null);
 
-  const handleCommand = (cmd) => {
-    if (cmd === 'clear') {
-      setTerminalOutput([]);
-      return;
+  // Handler jika pengguna ingin mengganti foto dengan foto pribadinya langsung dari komputer
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Data = reader.result;
+        setProfileImage(base64Data);
+        try {
+          localStorage.setItem('billean_custom_portrait', base64Data);
+        } catch (err) {
+          console.warn('Ukuran foto terlalu besar untuk localStorage, foto tetap tampil di sesi ini.', err);
+        }
+      };
+      reader.readAsDataURL(file);
     }
-    let response = "";
-    if (cmd === 'vision') {
-      response = "VISI: Membuktikan bahwa talenta PPLG Indonesia mampu menciptakan pengalaman web interaktif kelas dunia standar Awwwards.";
-    } else if (cmd === 'stack') {
-      response = "STACK: React 19, Three.js, R3F, GSAP, TypeScript, GLSL Shaders, Framer Motion, Lenis.";
-    } else if (cmd === 'game_mode') {
-      setActiveMode('game');
-      response = "MODE AKTIF: [GIM & SPATIAL ENGINE] — Fisika pegas, kurva bezier, dan feedback haptik diaktifkan.";
-    } else if (cmd === 'software_mode') {
-      setActiveMode('software');
-      response = "MODE AKTIF: [REKAYASA PERANGKAT LUNAK] — Arsitektur bersih, skalabilitas kode, dan modularitas.";
-    }
-    setTerminalOutput((prev) => [...prev, `$ billean --${cmd}`, response]);
   };
 
-  const skillsData = [
-    { name: "Three.js / WebGL", category: "game", level: "Advanced", desc: "Simulasi 3D, koordinat spasial & visual imersif" },
-    { name: "React 19 & Next.js", category: "software", level: "Expert", desc: "Arsitektur frontend modern, SSR & reactive state" },
-    { name: "GSAP & ScrollTrigger", category: "game", level: "Advanced", desc: "Timeline orkestrasi & fisika scroll mulus" },
-    { name: "Game Feel & Physics", category: "game", level: "Proficient", desc: "Spring kinematics, inertia & responsive haptics" },
-    { name: "TypeScript / ESNext", category: "software", level: "Advanced", desc: "Type-safety, clean OOP & functional patterns" },
-    { name: "Shader Programming (GLSL)", category: "game", level: "Intermediate", desc: "Efek visual matematis langsung pada GPU" },
-    { name: "UI/UX & Spatial Systems", category: "design", level: "Expert", desc: "Desain Awwwards, tipografi proporsional & grid" },
-    { name: "REST API & Backend Logic", category: "software", level: "Advanced", desc: "Struktur data, integrasi database & middleware" }
+  const handleResetPhoto = () => {
+    localStorage.removeItem('billean_custom_portrait');
+    setProfileImage('/profile.jpg');
+  };
+
+  // Kurasi Teknologi yang Dipelajari & Digunakan (Sesuai Permintaan)
+  const techCategories = [
+    { id: 'all', label: 'SEMUA' },
+    { id: 'backend', label: 'BACKEND & API' },
+    { id: 'database', label: 'DATABASE & DATA' },
+    { id: 'frontend', label: 'FRONTEND & PORTO STACK' },
+    { id: 'design', label: 'DESAIN & KREATIF' }
   ];
 
-  const filteredSkills = selectedSkillCategory === 'all'
-    ? skillsData
-    : skillsData.filter((s) => s.category === selectedSkillCategory);
+  const technologies = [
+    {
+      name: 'Laravel 13',
+      category: 'backend',
+      tag: 'Primary Framework',
+      role: 'Backend Architecture',
+      desc: 'Arsitektur MVC modern, Eloquent ORM, migrasi skema database, otentikasi aman, dan pengembangan REST API terstruktur.'
+    },
+    {
+      name: 'PHP',
+      category: 'backend',
+      tag: 'Core Language',
+      role: 'Server-Side Programming',
+      desc: 'Pemrograman berorientasi objek (OOP), manajemen sesi, modularitas kode, dan eksekusi logika backend yang handal.'
+    },
+    {
+      name: 'Golang',
+      category: 'backend',
+      tag: 'High Concurrency',
+      role: 'Systems & Microservices',
+      desc: 'Bahasa terkompilasi dengan performa tinggi, goroutine concurrency, typing kuat, serta efisiensi beban kerja server.'
+    },
+    {
+      name: 'Postman',
+      category: 'backend',
+      tag: 'API Tooling',
+      role: 'Contract & Endpoint Testing',
+      desc: 'Perancangan spesifikasi endpoint REST, pengujian otomasi response JSON, debugging status code, dan dokumentasi API.'
+    },
+    {
+      name: 'PostgreSQL',
+      category: 'database',
+      tag: 'Primary RDBMS',
+      role: 'Enterprise Relational DB',
+      desc: 'Sistem manajemen database relasional tangguh, query kompleks, integritas data ACID, dan indexing skala besar.'
+    },
+    {
+      name: 'MySQL',
+      category: 'database',
+      tag: 'Relational DB',
+      role: 'Data Modeling & Queries',
+      desc: 'Perancangan skema relasional, normalisasi tabel, foreign key integrity, dan optimalisasi query berkecepatan tinggi.'
+    },
+    {
+      name: 'phpMyAdmin',
+      category: 'database',
+      tag: 'DB Administration',
+      role: 'Visual SQL Manager',
+      desc: 'Manajemen database grafis, inspeksi struktur tabel, eksekusi query manual, manipulasi baris, dan ekspor/impor skema.'
+    },
+    {
+      name: 'React.js',
+      category: 'frontend',
+      tag: 'Modern UI',
+      role: 'Frontend Library',
+      desc: 'Komponen modular, state management reaktif, custom hooks, dan arsitektur antarmuka Single Page Application (SPA).'
+    },
+    {
+      name: 'JavaScript',
+      category: 'frontend',
+      tag: 'Core Web',
+      role: 'Modern ESNext',
+      desc: 'Manipulasi DOM dinamis, asynchronous programming (Async/Await), event handling presisi, dan logika interaktif modern.'
+    },
+    {
+      name: 'Three.js / WebGL',
+      category: 'frontend',
+      tag: 'Porto Engine',
+      role: '3D Spatial Graphics',
+      desc: 'Grafis 3D interaktif pada browser, sistem koordinat spasial, material PBR, dan rendering procedural (fondasi portofolio ini).'
+    },
+    {
+      name: 'GSAP & ScrollTrigger',
+      category: 'frontend',
+      tag: 'Porto Engine',
+      role: 'Timeline Motion Engine',
+      desc: 'Orkestrasi animasi timeline 60 FPS, scrubbing scroll dinamis, pin section, dan interaksi fisik responsif.'
+    },
+    {
+      name: 'Framer Motion',
+      category: 'frontend',
+      tag: 'Porto Engine',
+      role: 'Declarative Transitions',
+      desc: 'Animasi transisi halaman mulus, fisika pegas (spring dynamics), gesture hover mikro, dan tata letak dinamis.'
+    },
+    {
+      name: 'Lenis',
+      category: 'frontend',
+      tag: 'Porto Engine',
+      role: 'Smooth Scroll Core',
+      desc: 'Inertial smooth scrolling berakurasi tinggi yang tersinkronisasi mulus dengan ScrollTrigger dan navigasi browser.'
+    },
+    {
+      name: 'Figma',
+      category: 'design',
+      tag: 'UI/UX Design',
+      role: 'Interface Architecture',
+      desc: 'Wireframing, perancangan sistem desain, auto-layout responsif, tipografi harmonis, dan prototyping antarmuka.'
+    },
+    {
+      name: 'Canva',
+      category: 'design',
+      tag: 'Visual Assets',
+      role: 'Creative Layout',
+      desc: 'Penyusunan tata letak visual cepat, aset grafis pendukung, branding presentasi, dan materi visual modern.'
+    },
+    {
+      name: 'Canva Affinity',
+      category: 'design',
+      tag: 'Vector Studio',
+      role: 'Affinity Designer & Graphics',
+      desc: 'Ilustrasi vektor presisi matematis, manipulasi grafis resolusi ultra tinggi, dan tipografi editorial berkelas.'
+    }
+  ];
+
+  const filteredTech = activeCategory === 'all'
+    ? technologies
+    : technologies.filter((t) => t.category === activeCategory);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -30 }}
-      transition={{ duration: 0.6, ease: [0.25, 1, 0.5, 1] }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       style={{
         position: 'relative',
         zIndex: 80,
         minHeight: '100vh',
         backgroundColor: '#050505',
         color: '#ffffff',
-        padding: isMobile ? '6rem 1.5rem 5rem 1.5rem' : '8rem 4rem 6rem 4rem',
+        padding: isMobile ? '5.5rem 1.25rem 4rem 1.25rem' : '7.5rem 4rem 6rem 4rem',
         boxSizing: 'border-box'
       }}
     >
-      {/* Background Ambience */}
+      {/* Subtle Noise / Ambient Grid Lines */}
       <div
         style={{
           position: 'fixed',
-          top: '20%',
-          right: '5%',
-          width: '500px',
-          height: '500px',
-          borderRadius: '50%',
-          background: activeMode === 'software'
-            ? 'radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%)'
-            : 'radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%)',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
           pointerEvents: 'none',
           zIndex: 0,
-          transition: 'background 0.8s ease'
+          opacity: 0.6
         }}
       />
 
-      {/* Navigasi Balik ke Home / Works */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '3rem',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          paddingBottom: '1.5rem'
-        }}
-      >
-        <button
-          onClick={onBackToHome}
-          onMouseEnter={onHover}
-          onMouseLeave={onLeave}
+      <div style={{ maxWidth: '1240px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        {/* NAVIGASI MINIMALIS: KEMBALI KE BERANDA */}
+        <div
           style={{
-            display: 'inline-flex',
+            display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            gap: '10px',
-            background: 'transparent',
-            border: '1px solid rgba(255, 255, 255, 0.25)',
-            color: 'white',
-            padding: '10px 22px',
-            borderRadius: '30px',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.8rem',
-            letterSpacing: '1.5px',
-            cursor: 'pointer',
-            textTransform: 'uppercase',
-            transition: 'all 0.3s ease'
+            marginBottom: isMobile ? '2.5rem' : '3.8rem',
+            paddingBottom: '1.25rem',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
           }}
         >
-          <span>←</span>
-          <span>Kembali ke Beranda / Karya</span>
-        </button>
-
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.75rem',
-          color: 'rgba(255,255,255,0.6)'
-        }}>
-          <span>DOSSIER: PPLG-2026-BUP</span>
-          <span style={{ color: activeMode === 'software' ? '#ffffff' : '#34d399' }}>● ONLINE</span>
-        </div>
-      </div>
-
-      {/* HEADER SECTION: TITEL BESAR & DUAL MODE TOGGLE */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : '1.4fr 1fr',
-        gap: '3rem',
-        alignItems: 'center',
-        marginBottom: '5rem'
-      }}>
-        <div>
-          {/* Badge Profil */}
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '6px 14px',
-            backgroundColor: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.15)',
-            borderRadius: '20px',
-            marginBottom: '1.5rem'
-          }}>
-            <span className="pulse-dot" style={{ backgroundColor: activeMode === 'software' ? '#3b82f6' : '#10b981' }} />
-            <span style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.72rem',
-              letterSpacing: '2px',
-              textTransform: 'uppercase',
-              color: 'rgba(255,255,255,0.9)'
-            }}>
-              PPLG • PENGEMBANGAN PERANGKAT LUNAK & GIM
-            </span>
-          </div>
-
-          {/* Heading Nama & Filosofi */}
-          <h1 style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: isMobile ? 'clamp(2.6rem, 11vw, 3.8rem)' : 'clamp(4rem, 6.5vw, 6.2rem)',
-            fontWeight: '900',
-            lineHeight: '1',
-            letterSpacing: '-0.035em',
-            margin: '0 0 1.5rem 0',
-            color: '#ffffff'
-          }}>
-            Arsitek Kode & Pengalaman Digital.
-          </h1>
-
-          <p style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: isMobile ? '1rem' : '1.2rem',
-            lineHeight: '1.7',
-            color: 'rgba(255, 255, 255, 0.8)',
-            maxWidth: '650px',
-            margin: '0 0 2rem 0'
-          }}>
-            Saya <strong style={{ color: '#ffffff' }}>Billean Uji Prakasa</strong>, seorang siswa dan kreator di jurusan <span style={{ color: activeMode === 'software' ? '#93c5fd' : '#6ee7b7' }}>PPLG</span>. Saya menjembatani ketepatan logika rekayasa perangkat lunak dengan sensasi interaktif dan kedalaman visual industri pengembangan gim.
-          </p>
-
-          {/* Interactive Dual-Mode Switcher */}
-          <div style={{
-            display: 'inline-flex',
-            padding: '6px',
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            borderRadius: '40px',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            gap: '8px'
-          }}>
-            <button
-              onClick={() => { setActiveMode('software'); handleCommand('software_mode'); }}
-              onMouseEnter={onHover}
-              onMouseLeave={onLeave}
-              style={{
-                padding: '10px 20px',
-                borderRadius: '30px',
-                border: 'none',
-                backgroundColor: activeMode === 'software' ? '#3b82f6' : 'transparent',
-                color: activeMode === 'software' ? '#ffffff' : 'rgba(255,255,255,0.6)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.75rem',
-                letterSpacing: '1px',
-                fontWeight: '700',
-                textTransform: 'uppercase',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              [ 01 ] Perangkat Lunak
-            </button>
-            <button
-              onClick={() => { setActiveMode('game'); handleCommand('game_mode'); }}
-              onMouseEnter={onHover}
-              onMouseLeave={onLeave}
-              style={{
-                padding: '10px 20px',
-                borderRadius: '30px',
-                border: 'none',
-                backgroundColor: activeMode === 'game' ? '#10b981' : 'transparent',
-                color: activeMode === 'game' ? '#050505' : 'rgba(255,255,255,0.6)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.75rem',
-                letterSpacing: '1px',
-                fontWeight: '700',
-                textTransform: 'uppercase',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              [ 02 ] Gim & Mekanika Spasial
-            </button>
-          </div>
-        </div>
-
-        {/* 3D Canvas Interaktif (Cybernetic PPLG Core) */}
-        <div style={{
-          height: isMobile ? '300px' : '420px',
-          width: '100%',
-          position: 'relative',
-          borderRadius: '24px',
-          backgroundColor: 'rgba(255, 255, 255, 0.02)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          overflow: 'hidden'
-        }}>
-          <div style={{
-            position: 'absolute',
-            top: '16px',
-            left: '20px',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.7rem',
-            color: 'rgba(255,255,255,0.5)',
-            letterSpacing: '1.5px',
-            zIndex: 10
-          }}>
-            CORE ENGINE // INTERACTIVE 3D MESH
-          </div>
-          <div style={{
-            position: 'absolute',
-            bottom: '16px',
-            right: '20px',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.68rem',
-            color: activeMode === 'software' ? '#93c5fd' : '#6ee7b7',
-            letterSpacing: '1px',
-            zIndex: 10
-          }}>
-            [ ROTASI OTOMATIS & RESPON KURSOR ]
-          </div>
-          <Canvas camera={{ position: [0, 0, 7], fov: 45 }}>
-            <ambientLight intensity={1.2} />
-            <CyberCore activeMode={activeMode} />
-          </Canvas>
-        </div>
-      </div>
-
-      {/* SECTION 2: TIGA PILAR UTAMA (FILOSOFI PPLG BILLEAN) */}
-      <div style={{ marginBottom: '6rem' }}>
-        <div style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.78rem',
-          letterSpacing: '3px',
-          color: 'rgba(255,255,255,0.5)',
-          textTransform: 'uppercase',
-          marginBottom: '2rem'
-        }}>
-          [ 01 // MANIFESTO PPLG ]
-        </div>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-          gap: '24px'
-        }}>
-          {/* Pilar 1 */}
-          <div style={{
-            padding: '32px',
-            backgroundColor: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '20px',
-            backdropFilter: 'blur(10px)',
-            transition: 'transform 0.3s ease, border-color 0.3s ease'
-          }}>
-            <div style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '1.5rem',
-              color: '#3b82f6',
-              marginBottom: '1rem',
-              fontWeight: 'bold'
-            }}>
-              01
-            </div>
-            <h3 style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.5rem',
-              marginBottom: '1rem',
-              fontWeight: '800'
-            }}>
-              Rekayasa Perangkat Lunak
-            </h3>
-            <p style={{
-              fontSize: '0.92rem',
-              color: 'rgba(255, 255, 255, 0.7)',
-              lineHeight: '1.6'
-            }}>
-              Kode bukan sekadar instruksi mesin; ia adalah arsitektur abstrak yang menggerakkan pengalaman manusia. Saya merancang sistem yang modular, bersih, berperforma tinggi, dan siap diskalakan.
-            </p>
-          </div>
-
-          {/* Pilar 2 */}
-          <div style={{
-            padding: '32px',
-            backgroundColor: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '20px',
-            backdropFilter: 'blur(10px)'
-          }}>
-            <div style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '1.5rem',
-              color: '#10b981',
-              marginBottom: '1rem',
-              fontWeight: 'bold'
-            }}>
-              02
-            </div>
-            <h3 style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.5rem',
-              marginBottom: '1rem',
-              fontWeight: '800'
-            }}>
-              Mekanika Gim & Game Feel
-            </h3>
-            <p style={{
-              fontSize: '0.92rem',
-              color: 'rgba(255, 255, 255, 0.7)',
-              lineHeight: '1.6'
-            }}>
-              Dunia gim mengajarkan bahwa pengguna tidak hanya membaca layar—mereka harus merasakan sensasi sentuhan. Dari inersia pegas hingga deformasi mesh, setiap micro-interaksi dirancang memuaskan (*juicy*).
-            </p>
-          </div>
-
-          {/* Pilar 3 */}
-          <div style={{
-            padding: '32px',
-            backgroundColor: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '20px',
-            backdropFilter: 'blur(10px)'
-          }}>
-            <div style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '1.5rem',
-              color: '#f59e0b',
-              marginBottom: '1rem',
-              fontWeight: 'bold'
-            }}>
-              03
-            </div>
-            <h3 style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.5rem',
-              marginBottom: '1rem',
-              fontWeight: '800'
-            }}>
-              Estetika Web Awwwards
-            </h3>
-            <p style={{
-              fontSize: '0.92rem',
-              color: 'rgba(255, 255, 255, 0.7)',
-              lineHeight: '1.6'
-            }}>
-              Menolak template pasaran yang membosankan. Melalui perpaduan tipografi editorial radikal, pencahayaan 3D Three.js, dan transisi tanpa jeda, setiap karya ditujukan untuk memenangkan penghargaan internasional.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* SECTION 3: INTERACTIVE PPLG RUNTIME TERMINAL & TECH STACK */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : '1.1fr 1fr',
-        gap: '3rem',
-        alignItems: 'start',
-        marginBottom: '6rem'
-      }}>
-        {/* Terminal PPLG Interaktif */}
-        <div style={{
-          backgroundColor: '#0c0d0e',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          borderRadius: '16px',
-          overflow: 'hidden',
-          fontFamily: 'var(--font-mono)',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.8)'
-        }}>
-          {/* Header Bar Terminal */}
-          <div style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            padding: '12px 18px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-          }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
-              <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-              <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10b981' }} />
-            </div>
-            <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', letterSpacing: '1px' }}>
-              billean@pplg-terminal:~
-            </span>
-            <span style={{ fontSize: '0.68rem', color: '#10b981' }}>BASH / 60FPS</span>
-          </div>
-
-          {/* Isi Terminal */}
-          <div style={{
-            padding: '20px',
-            minHeight: '220px',
-            maxHeight: '280px',
-            overflowY: 'auto',
-            fontSize: '0.8rem',
-            lineHeight: '1.6',
-            color: 'rgba(255, 255, 255, 0.85)'
-          }}>
-            {terminalOutput.map((line, i) => (
-              <div key={i} style={{ color: line.startsWith('$') ? '#ffffff' : line.startsWith('VISI:') || line.startsWith('STACK:') ? '#34d399' : 'rgba(255,255,255,0.75)' }}>
-                {line}
-              </div>
-            ))}
-          </div>
-
-          {/* Quick Command Buttons */}
-          <div style={{
-            padding: '12px 16px',
-            backgroundColor: 'rgba(255, 255, 255, 0.02)',
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '8px'
-          }}>
-            <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', alignSelf: 'center', marginRight: '4px' }}>
-              PILIH PERINTAH:
-            </span>
-            {['vision', 'stack', 'software_mode', 'game_mode', 'clear'].map((cmd) => (
-              <button
-                key={cmd}
-                onClick={() => handleCommand(cmd)}
-                onMouseEnter={onHover}
-                onMouseLeave={onLeave}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  color: '#ffffff',
-                  padding: '5px 12px',
-                  borderRadius: '12px',
-                  fontSize: '0.7rem',
-                  fontFamily: 'var(--font-mono)',
-                  cursor: 'pointer',
-                  transition: 'background 0.2s'
-                }}
-              >
-                --{cmd}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Kurasi Skill & Kemampuan PPLG */}
-        <div>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1.5rem'
-          }}>
-            <h3 style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.8rem',
-              fontWeight: '900',
-              margin: 0
-            }}>
-              Spektrum Kemampuan
-            </h3>
-
-            {/* Filter Kategori */}
-            <div style={{ display: 'flex', gap: '6px' }}>
-              {['all', 'software', 'game'].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedSkillCategory(cat)}
-                  onMouseEnter={onHover}
-                  onMouseLeave={onLeave}
-                  style={{
-                    background: selectedSkillCategory === cat ? 'white' : 'transparent',
-                    color: selectedSkillCategory === cat ? 'black' : 'rgba(255,255,255,0.6)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    padding: '4px 10px',
-                    borderRadius: '15px',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '0.68rem',
-                    textTransform: 'uppercase',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {filteredSkills.map((skill, index) => (
-              <div
-                key={index}
-                style={{
-                  padding: '16px 20px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '12px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  transition: 'border-color 0.3s ease'
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: '700', fontSize: '0.95rem', marginBottom: '4px' }}>
-                    {skill.name}
-                  </div>
-                  <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)' }}>
-                    {skill.desc}
-                  </div>
-                </div>
-
-                <span style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.72rem',
-                  padding: '4px 10px',
-                  borderRadius: '10px',
-                  backgroundColor: skill.category === 'software' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                  color: skill.category === 'software' ? '#93c5fd' : '#6ee7b7',
-                  border: `1px solid ${skill.category === 'software' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`
-                }}>
-                  {skill.level}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* FOOTER CALL TO ACTION */}
-      <div style={{
-        padding: isMobile ? '40px 24px' : '60px 48px',
-        backgroundColor: 'rgba(255, 255, 255, 0.02)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        borderRadius: '24px',
-        textAlign: 'center',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        <div style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.75rem',
-          letterSpacing: '3px',
-          color: '#10b981',
-          textTransform: 'uppercase',
-          marginBottom: '1rem'
-        }}>
-          [ TERTARIK MEMBANGUN HAL LUAR BIASA BERSAMA? ]
-        </div>
-
-        <h2 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: isMobile ? '2rem' : '3.2rem',
-          fontWeight: '900',
-          letterSpacing: '-0.02em',
-          marginBottom: '1.5rem'
-        }}>
-          Mari Mengubah Ide Menjadi Realitas Digital.
-        </h2>
-
-        <p style={{
-          fontSize: '1rem',
-          color: 'rgba(255, 255, 255, 0.7)',
-          maxWidth: '550px',
-          margin: '0 auto 2.5rem auto',
-          lineHeight: '1.6'
-        }}>
-          Terbuka untuk kolaborasi proyek kreatif, studi kasus inovatif, atau diskusi seputar arsitektur kode dan grafika interaktif.
-        </p>
-
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
-          <a
-            href="mailto:contact@billean.dev"
-            onMouseEnter={onHover}
-            onMouseLeave={onLeave}
-            style={{
-              padding: '14px 32px',
-              backgroundColor: '#ffffff',
-              color: '#050505',
-              textDecoration: 'none',
-              fontFamily: 'var(--font-mono)',
-              fontWeight: '700',
-              fontSize: '0.82rem',
-              letterSpacing: '1.5px',
-              textTransform: 'uppercase',
-              borderRadius: '40px',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            Kirim Surel / Diskusi ↗
-          </a>
           <button
             onClick={onBackToHome}
             onMouseEnter={onHover}
             onMouseLeave={onLeave}
             style={{
-              padding: '14px 28px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
               backgroundColor: 'transparent',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
               color: '#ffffff',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
+              padding: '9px 20px',
+              borderRadius: '24px',
               fontFamily: 'var(--font-mono)',
-              fontSize: '0.82rem',
+              fontSize: '0.78rem',
               letterSpacing: '1.5px',
+              cursor: 'pointer',
               textTransform: 'uppercase',
-              borderRadius: '40px',
-              cursor: 'pointer'
+              transition: 'all 0.25s ease'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = '#ffffff';
+              e.currentTarget.style.color = '#000000';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = '#ffffff';
             }}
           >
-            Lihat Portofolio Karya
+            <span>←</span>
+            <span>BERANDA</span>
+          </button>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.75rem',
+              color: 'rgba(255, 255, 255, 0.55)',
+              letterSpacing: '1px'
+            }}
+          >
+            <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#ffffff', boxShadow: '0 0 10px #ffffff' }} />
+            <span>JEPARA, ID • TERSEDIA UNTUK KOLABORASI</span>
+          </div>
+        </div>
+
+        {/* HERO SECTION ABOUT: FOTO EDITORIAL & BIOGRAFI RINGKAS MINIMALIS */}
+        <section
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : '380px 1fr',
+            gap: isMobile ? '2.5rem' : '4.5rem',
+            alignItems: 'start',
+            marginBottom: isMobile ? '4rem' : '6rem'
+          }}
+        >
+          {/* FRAME FOTO PERSONAL (EDITORIAL MONOCHROME PORTRAIT) */}
+          <div style={{ position: 'relative' }}>
+            <div
+              style={{
+                position: 'relative',
+                width: '100%',
+                aspectRatio: '3 / 4',
+                backgroundColor: '#0d0d0d',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                border: '1px solid rgba(255, 255, 255, 0.16)',
+                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 255, 255, 0.03)'
+              }}
+            >
+              {/* Foto Aktual */}
+              <img
+                src={profileImage}
+                alt="Billean Uji Prakasa"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                  filter: 'grayscale(100%) contrast(108%) brightness(96%)',
+                  transition: 'transform 0.5s ease, filter 0.5s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.03)';
+                  e.currentTarget.style.filter = 'grayscale(100%) contrast(114%) brightness(102%)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.filter = 'grayscale(100%) contrast(108%) brightness(96%)';
+                }}
+                onError={(e) => {
+                  // Fallback jika profile.jpg belum termuat
+                  e.currentTarget.src = '/profile.jpg';
+                }}
+              />
+
+              {/* Overlay Label Estetik Minimalis */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '14px',
+                  left: '14px',
+                  padding: '4px 10px',
+                  backgroundColor: 'rgba(5, 5, 5, 0.75)',
+                  backdropFilter: 'blur(8px)',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.68rem',
+                  letterSpacing: '1.5px',
+                  color: 'rgba(255, 255, 255, 0.85)'
+                }}
+              >
+                PROFIL / 2026
+              </div>
+
+              {/* Tombol Praktis Penggantian Foto Pribadi */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '14px',
+                  left: '14px',
+                  right: '14px',
+                  display: 'flex',
+                  gap: '8px'
+                }}
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handlePhotoUpload}
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  onMouseEnter={onHover}
+                  onMouseLeave={onLeave}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    backgroundColor: 'rgba(5, 5, 5, 0.82)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.22)',
+                    color: '#ffffff',
+                    borderRadius: '8px',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.7rem',
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = '#ffffff';
+                    e.currentTarget.style.color = '#000000';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(5, 5, 5, 0.82)';
+                    e.currentTarget.style.color = '#ffffff';
+                  }}
+                  title="Klik untuk memilih foto Anda langsung dari komputer"
+                >
+                  <span>📷</span>
+                  <span>GANTI FOTO SAYA</span>
+                </button>
+
+                {profileImage !== '/profile.jpg' && (
+                  <button
+                    onClick={handleResetPhoto}
+                    style={{
+                      padding: '8px 10px',
+                      backgroundColor: 'rgba(5, 5, 5, 0.82)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      borderRadius: '8px',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.7rem',
+                      cursor: 'pointer'
+                    }}
+                    title="Kembalikan ke foto bawaan"
+                  >
+                    ↺
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Identitas Ringkas di Bawah Foto */}
+            <div style={{ marginTop: '1.25rem' }}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '1.25rem',
+                  fontWeight: '700',
+                  color: '#ffffff',
+                  letterSpacing: '-0.02em'
+                }}
+              >
+                Billean Uji Prakasa
+              </div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.78rem',
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  marginTop: '4px',
+                  letterSpacing: '0.5px'
+                }}
+              >
+                Software Engineer & Creative Developer
+              </div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.72rem',
+                  color: 'rgba(255, 255, 255, 0.4)',
+                  marginTop: '4px'
+                }}
+              >
+                PPLG • SMK / Developer Indonesia
+              </div>
+            </div>
+          </div>
+
+          {/* BIO RINGKAS & NILAI FILOSOFI (MINIMALIS & TIDAK BERTELE-TELE) */}
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.75rem',
+                letterSpacing: '2px',
+                color: 'rgba(255, 255, 255, 0.5)',
+                textTransform: 'uppercase',
+                marginBottom: '1rem'
+              }}
+            >
+              // TENTANG & PRINSIP
+            </div>
+
+            <h1
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: isMobile ? 'clamp(2rem, 8vw, 2.8rem)' : 'clamp(2.5rem, 4vw, 3.8rem)',
+                fontWeight: '800',
+                lineHeight: '1.1',
+                letterSpacing: '-0.03em',
+                color: '#ffffff',
+                margin: '0 0 1.5rem 0'
+              }}
+            >
+              Arsitektur kode tangguh dengan visual interaktif yang bernyawa.
+            </h1>
+
+            <p
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: isMobile ? '0.98rem' : '1.1rem',
+                lineHeight: '1.7',
+                color: 'rgba(255, 255, 255, 0.75)',
+                margin: '0 0 1.25rem 0',
+                maxWidth: '680px'
+              }}
+            >
+              Halo, saya <strong style={{ color: '#ffffff' }}>Billean Uji Prakasa</strong>. Saya berfokus pada rekayasa perangkat lunak modern—menghubungkan ketangguhan sistem backend dan basis data relasional dengan pengalaman antarmuka web modern yang dinamis dan berkelas.
+            </p>
+
+            <p
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: isMobile ? '0.98rem' : '1.1rem',
+                lineHeight: '1.7',
+                color: 'rgba(255, 255, 255, 0.65)',
+                margin: '0 0 2.2rem 0',
+                maxWidth: '680px'
+              }}
+            >
+              Bagi saya, perangkat lunak yang hebat tidak hanya memiliki logika yang solid dan aman, tetapi juga memberikan rasa interaksi yang memikat dan memuaskan bagi setiap pengguna yang menyentuhnya.
+            </p>
+
+            {/* 3 KARTU METRIK MINIMALIS */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+                gap: '1rem',
+                marginBottom: '2.5rem'
+              }}
+            >
+              <div
+                style={{
+                  padding: '1.25rem',
+                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.09)',
+                  borderRadius: '12px'
+                }}
+              >
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'rgba(255, 255, 255, 0.45)', letterSpacing: '1px' }}>
+                  01 / BACKEND
+                </div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: '700', color: '#ffffff', marginTop: '6px' }}>
+                  Logika & Relasi
+                </div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.55)', marginTop: '4px' }}>
+                  Laravel 13, PHP, Golang & SQL
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: '1.25rem',
+                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.09)',
+                  borderRadius: '12px'
+                }}
+              >
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'rgba(255, 255, 255, 0.45)', letterSpacing: '1px' }}>
+                  02 / INTERAKSI
+                </div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: '700', color: '#ffffff', marginTop: '6px' }}>
+                  Visual Spasial
+                </div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.55)', marginTop: '4px' }}>
+                  React, Three.js, GSAP & Motion
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: '1.25rem',
+                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.09)',
+                  borderRadius: '12px'
+                }}
+              >
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'rgba(255, 255, 255, 0.45)', letterSpacing: '1px' }}>
+                  03 / DESAIN
+                </div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: '700', color: '#ffffff', marginTop: '6px' }}>
+                  Sistem & Vektor
+                </div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.55)', marginTop: '4px' }}>
+                  Figma & Canva Affinity
+                </div>
+              </div>
+            </div>
+
+            {/* AKSI TOMBOL CEPAT */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+              <a
+                href="mailto:billeanujiprakasa@gmail.com"
+                onMouseEnter={onHover}
+                onMouseLeave={onLeave}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: '#ffffff',
+                  color: '#000000',
+                  padding: '11px 24px',
+                  borderRadius: '30px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.8rem',
+                  fontWeight: '700',
+                  letterSpacing: '1px',
+                  textDecoration: 'none',
+                  transition: 'all 0.25s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.85)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <span>KIRIM EMAIL ↗</span>
+              </a>
+
+              <a
+                href="https://github.com"
+                target="_blank"
+                rel="noreferrer"
+                onMouseEnter={onHover}
+                onMouseLeave={onLeave}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: 'transparent',
+                  color: '#ffffff',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  padding: '11px 22px',
+                  borderRadius: '30px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.8rem',
+                  letterSpacing: '1px',
+                  textDecoration: 'none',
+                  transition: 'all 0.25s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.borderColor = '#ffffff';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
+                <span>GITHUB REPO ↗</span>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 2: TEKNOLOGI YANG DIGUNAKAN & DIPELAJARI */}
+        <section style={{ marginBottom: '5rem' }}>
+          {/* Header Section Teknologi */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
+              justifyContent: 'space-between',
+              alignItems: isMobile ? 'flex-start' : 'flex-end',
+              gap: '1.5rem',
+              marginBottom: '2.5rem',
+              paddingBottom: '1.25rem',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.75rem',
+                  letterSpacing: '2px',
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  textTransform: 'uppercase',
+                  marginBottom: '0.5rem'
+                }}
+              >
+                // STACK & TOOLKIT
+              </div>
+              <h2
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: isMobile ? '1.8rem' : '2.4rem',
+                  fontWeight: '800',
+                  color: '#ffffff',
+                  letterSpacing: '-0.02em',
+                  margin: 0
+                }}
+              >
+                Teknologi & Perangkat Kerja.
+              </h2>
+            </div>
+
+            {/* Filter Tabs Minimalis Monokrom */}
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px'
+              }}
+            >
+              {techCategories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  onMouseEnter={onHover}
+                  onMouseLeave={onLeave}
+                  style={{
+                    padding: '7px 16px',
+                    borderRadius: '20px',
+                    backgroundColor: activeCategory === cat.id ? '#ffffff' : 'rgba(255, 255, 255, 0.04)',
+                    color: activeCategory === cat.id ? '#000000' : 'rgba(255, 255, 255, 0.65)',
+                    border: '1px solid',
+                    borderColor: activeCategory === cat.id ? '#ffffff' : 'rgba(255, 255, 255, 0.12)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.72rem',
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Grid Kartu Teknologi */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '1.25rem'
+            }}
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredTech.map((tech, idx) => {
+                const isHovered = hoveredCard === tech.name;
+                return (
+                  <motion.div
+                    key={tech.name}
+                    layout
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    transition={{ duration: 0.25, delay: idx * 0.02 }}
+                    onMouseEnter={() => {
+                      onHover();
+                      setHoveredCard(tech.name);
+                    }}
+                    onMouseLeave={() => {
+                      onLeave();
+                      setHoveredCard(null);
+                    }}
+                    style={{
+                      position: 'relative',
+                      backgroundColor: isHovered ? '#121212' : '#0a0a0a',
+                      border: '1px solid',
+                      borderColor: isHovered ? 'rgba(255, 255, 255, 0.45)' : 'rgba(255, 255, 255, 0.09)',
+                      borderRadius: '14px',
+                      padding: '1.5rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: '190px',
+                      transition: 'all 0.25s ease',
+                      transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
+                      boxShadow: isHovered
+                        ? '0 12px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 255, 255, 0.05)'
+                        : 'none',
+                      cursor: 'default'
+                    }}
+                  >
+                    {/* Header Kartu */}
+                    <div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: '0.85rem'
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.68rem',
+                            letterSpacing: '1px',
+                            color: 'rgba(255, 255, 255, 0.4)'
+                          }}
+                        >
+                          {String(idx + 1).padStart(2, '0')}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.64rem',
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                            border: '1px solid rgba(255, 255, 255, 0.12)',
+                            color: isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+                            letterSpacing: '1px',
+                            textTransform: 'uppercase'
+                          }}
+                        >
+                          {tech.tag}
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          fontFamily: 'var(--font-display)',
+                          fontSize: '1.3rem',
+                          fontWeight: '700',
+                          color: '#ffffff',
+                          letterSpacing: '-0.02em',
+                          marginBottom: '0.4rem'
+                        }}
+                      >
+                        {tech.name}
+                      </div>
+
+                      <div
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '0.72rem',
+                          color: 'rgba(255, 255, 255, 0.5)',
+                          letterSpacing: '0.5px',
+                          marginBottom: '0.75rem'
+                        }}
+                      >
+                        {tech.role}
+                      </div>
+                    </div>
+
+                    {/* Deskripsi Singkat */}
+                    <p
+                      style={{
+                        fontFamily: 'var(--font-body)',
+                        fontSize: '0.82rem',
+                        lineHeight: '1.55',
+                        color: 'rgba(255, 255, 255, 0.65)',
+                        margin: 0
+                      }}
+                    >
+                      {tech.desc}
+                    </p>
+
+                    {/* Aksen Garis Halus di Bawah saat Hover */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: '14px',
+                        right: '14px',
+                        height: '2px',
+                        backgroundColor: '#ffffff',
+                        opacity: isHovered ? 0.9 : 0,
+                        transition: 'opacity 0.25s ease'
+                      }}
+                    />
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        </section>
+
+        {/* BOTTOM STATEMENT & FOOTER */}
+        <div
+          style={{
+            padding: isMobile ? '2.5rem 1.5rem' : '3.5rem 3rem',
+            backgroundColor: 'rgba(255, 255, 255, 0.02)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '18px',
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            justifyContent: 'space-between',
+            alignItems: isMobile ? 'flex-start' : 'center',
+            gap: '1.5rem'
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: isMobile ? '1.3rem' : '1.75rem',
+                fontWeight: '700',
+                color: '#ffffff',
+                marginBottom: '0.4rem'
+              }}
+            >
+              Mari ciptakan sesuatu yang bermakna.
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '0.88rem',
+                color: 'rgba(255, 255, 255, 0.55)'
+              }}
+            >
+              Terbuka untuk diskusi proyek, eksplorasi teknologi, dan peluang rekayasa perangkat lunak.
+            </div>
+          </div>
+
+          <button
+            onClick={onBackToHome}
+            onMouseEnter={onHover}
+            onMouseLeave={onLeave}
+            style={{
+              padding: '11px 26px',
+              backgroundColor: '#ffffff',
+              color: '#000000',
+              border: 'none',
+              borderRadius: '26px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.78rem',
+              fontWeight: '700',
+              letterSpacing: '1.5px',
+              cursor: 'pointer',
+              transition: 'all 0.25s ease'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.85)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = '#ffffff';
+            }}
+          >
+            JELAJAHI KARYA ↗
           </button>
         </div>
       </div>

@@ -228,11 +228,6 @@ export default function App() {
         filter: 'blur(16px)',
         scrollTrigger: heroScrollConfig
       });
-      gsap.to('.spin-badge-container', {
-        scale: 0.6,
-        opacity: 0,
-        scrollTrigger: heroScrollConfig
-      });
 
       // Animasi media sosial di sudut bawah
       gsap.to('.soc-li', { y: -25, x: 130, scrollTrigger: heroScrollConfig });
@@ -604,29 +599,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Rotating Circular Stamp Emblem */}
-            <div
-              className="spin-badge-container"
-              style={{
-                position: 'fixed',
-                right: isMobile ? '6%' : '7%',
-                top: isMobile ? '16%' : '20%',
-                zIndex: 60,
-                pointerEvents: 'none',
-                opacity: loadingComplete ? 0.75 : 0,
-                transition: 'opacity 2s ease'
-              }}
-            >
-              <svg className="spin-badge" width={isMobile ? "80" : "110"} height={isMobile ? "80" : "110"} viewBox="0 0 120 120">
-                <path id="circlePath" d="M 60, 60 m -44, 0 a 44,44 0 1,1 88,0 a 44,44 0 1,1 -88,0" fill="transparent" />
-                <text fill="rgba(255,255,255,0.75)" fontSize="9.5" letterSpacing="2.2" fontWeight="600" fontFamily="Space Grotesk, monospace">
-                  <textPath href="#circlePath" startOffset="0%">
-                    • BILLEAN UJI PRAKASA • AESTHETICS & CODE •
-                  </textPath>
-                </text>
-                <circle cx="60" cy="60" r="3.5" fill="#ffffff" />
-              </svg>
-            </div>
+
 
             {/* Main Scroll Track: Section 1 (Hero) -> Section 2 (Pegas Helix 3D) */}
             <div id="main-scroll-track" style={{ position: 'relative', zIndex: 10, pointerEvents: 'none' }}>
@@ -648,31 +621,7 @@ export default function App() {
                   boxSizing: 'border-box'
                 }}
               >
-                {/* Status / Role Pill Header */}
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: isMobile ? '0.62rem' : '0.74rem',
-                    letterSpacing: '2.5px',
-                    textTransform: 'uppercase',
-                    color: 'rgba(255, 255, 255, 0.72)',
-                    marginBottom: isMobile ? '10px' : '14px',
-                    padding: '5px 14px',
-                    borderRadius: '100px',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    background: 'rgba(15, 15, 15, 0.45)',
-                    backdropFilter: 'blur(10px)',
-                    WebkitBackdropFilter: 'blur(10px)',
-                    pointerEvents: 'none',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
-                  }}
-                >
-                  <span className="pulse-dot" />
-                  CREATIVE TECHNOLOGIST & INTERACTION
-                </div>
+
 
                 {/* Central Name & Interactive Per-Letter Physics */}
                 <div
@@ -698,7 +647,7 @@ export default function App() {
                       lineHeight: '0.92',
                       letterSpacing: '-0.035em',
                       color: '#ffffff',
-                      textShadow: '0 4px 30px rgba(0, 0, 0, 0.85), 0 0 50px rgba(16, 185, 129, 0.15)',
+                      textShadow: '0 4px 30px rgba(0, 0, 0, 0.85), 0 0 50px rgba(255, 255, 255, 0.15)',
                       textTransform: 'none'
                     }}
                   >
@@ -714,7 +663,7 @@ export default function App() {
                       lineHeight: '0.95',
                       letterSpacing: '-0.035em',
                       color: 'rgba(255, 255, 255, 0.94)',
-                      textShadow: '0 4px 30px rgba(0, 0, 0, 0.85), 0 0 50px rgba(16, 185, 129, 0.12)',
+                      textShadow: '0 4px 30px rgba(0, 0, 0, 0.85), 0 0 50px rgba(255, 255, 255, 0.12)',
                       textTransform: 'none',
                       marginTop: isMobile ? '4px' : '8px'
                     }}
