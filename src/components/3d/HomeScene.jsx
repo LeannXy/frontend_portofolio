@@ -13,8 +13,9 @@ export default function HomeScene({
 }) {
   return (
     <Canvas
-      dpr={[1, 1.25]}
+      dpr={[1, 1.1]}
       frameloop={isMainTrackVisible ? 'always' : 'never'}
+      gl={{ powerPreference: 'high-performance' }}
       onPointerMissed={() => setClickedProject(null)}
     >
       <ambientLight intensity={1.8} />

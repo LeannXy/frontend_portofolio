@@ -1,0 +1,83 @@
+export const DEFAULT_HISTORY = [
+  {
+    id: 0, year: '2023 - 2024', title: 'Full Stack Developer', company: 'Meedia',
+    text: 'Joined Meedia as a Full Stack Developer, building scalable apps with React, Node.js, and MongoDB.',
+    details: ['Mengembangkan arsitektur aplikasi web reaktif berskala besar', 'Optimalisasi pipeline integrasi API RESTful & MongoDB query', 'Penerapan sistem komponen desain monokrom berkecepatan 60 FPS'],
+    techStack: ['React', 'Node.js', 'MongoDB', 'Express', 'TailwindCSS'], ratio: 0.08, stemHeight: 64
+  },
+  {
+    id: 1, year: '2024 - 2025', title: 'DevOps & Cloud Engineer', company: 'Core Infrastructure',
+    text: 'Led projects with AWS and Docker, improved CI/CD pipelines, and mentored junior developers.',
+    details: ['Orkestrasi kontainerisasi multi-layanan menggunakan Docker & AWS ECS', 'Peningkatan kecepatan deployment pipeline CI/CD hingga 3.2x lebih cepat', 'Mentorship teknis bagi 6+ junior developer dalam standar clean code'],
+    techStack: ['AWS', 'Docker', 'CI/CD', 'TypeScript', 'Terraform'], ratio: 0.38, stemHeight: 64
+  },
+  {
+    id: 2, year: '2025 - 2026', title: 'Senior Developer', company: 'Platform Engineering',
+    text: 'Promoted to Senior Developer, focusing on microservices, database design, and open-source work.',
+    details: ['Transisi arsitektur monolit ke ekosistem microservices modular', 'Perancangan skema database terdistribusi dengan konkurensi tinggi', 'Kontribusi aktif pada ekosistem open-source dan UI framework modern'],
+    techStack: ['Microservices', 'PostgreSQL', 'Go', 'Redis', 'Kafka'], ratio: 0.70, stemHeight: 64
+  },
+  {
+    id: 3, year: '2026 - 2027', title: 'Team Lead & Creative Architect', company: 'Innovation Lab',
+    text: 'Became Team Lead, managing agile projects, scaling systems, and driving developer tools.',
+    details: ['Memimpin visi teknis dan arsitektur produk interaktif berbasis WebGL 3D', 'Manajemen sprint agile lintas disiplin desain interaksi dan rekayasa kode', 'Pengembangan developer tooling internal yang memangkas waktu iterasi UI'],
+    techStack: ['Team Leadership', 'Three.js', 'System Architecture', 'GSAP', 'Next.js'], ratio: 0.92, stemHeight: 64
+  }
+];
+
+export const DEFAULT_TECHNOLOGIES = [
+  { name: 'Laravel 13', category: 'backend', tag: 'Primary Framework', role: 'Backend Architecture', desc: 'Arsitektur MVC modern, Eloquent ORM, migrasi skema database, otentikasi aman, dan pengembangan REST API terstruktur.' },
+  { name: 'PHP', category: 'backend', tag: 'Core Language', role: 'Server-Side Programming', desc: 'Pemrograman berorientasi objek (OOP), manajemen sesi, modularitas kode, dan eksekusi logika backend yang handal.' },
+  { name: 'Golang', category: 'backend', tag: 'High Concurrency', role: 'Systems & Microservices', desc: 'Bahasa terkompilasi dengan performa tinggi, goroutine concurrency, typing kuat, serta efisiensi beban kerja server.' },
+  { name: 'Postman', category: 'backend', tag: 'API Tooling', role: 'Contract & Endpoint Testing', desc: 'Perancangan spesifikasi endpoint REST, pengujian otomasi response JSON, debugging status code, dan dokumentasi API.' },
+  { name: 'PostgreSQL', category: 'database', tag: 'Primary RDBMS', role: 'Enterprise Relational DB', desc: 'Sistem manajemen database relasional tangguh, query kompleks, integritas data ACID, dan indexing skala besar.' },
+  { name: 'MySQL', category: 'database', tag: 'Relational DB', role: 'Data Modeling & Queries', desc: 'Perancangan skema relasional, normalisasi tabel, foreign key integrity, dan optimalisasi query berkecepatan tinggi.' },
+  { name: 'phpMyAdmin', category: 'database', tag: 'DB Administration', role: 'Visual SQL Manager', desc: 'Manajemen database grafis, inspeksi struktur tabel, eksekusi query manual, manipulasi baris, dan ekspor/impor skema.' },
+  { name: 'React.js', category: 'frontend', tag: 'Modern UI', role: 'Frontend Library', desc: 'Komponen modular, state management reaktif, custom hooks, dan arsitektur antarmuka Single Page Application (SPA).' },
+  { name: 'JavaScript', category: 'frontend', tag: 'Core Web', role: 'Modern ESNext', desc: 'Manipulasi DOM dinamis, asynchronous programming (Async/Await), event handling presisi, dan logika interaktif modern.' },
+  { name: 'Three.js / WebGL', category: 'frontend', tag: 'Porto Engine', role: '3D Spatial Graphics', desc: 'Grafis 3D interaktif pada browser, sistem koordinat spasial, material PBR, dan rendering procedural (fondasi portofolio ini).' },
+  { name: 'GSAP & ScrollTrigger', category: 'frontend', tag: 'Porto Engine', role: 'Timeline Motion Engine', desc: 'Orkestrasi animasi timeline 60 FPS, scrubbing scroll dinamis, pin section, dan interaksi fisik responsif.' },
+  { name: 'Framer Motion', category: 'frontend', tag: 'Porto Engine', role: 'Declarative Transitions', desc: 'Animasi transisi halaman mulus, fisika pegas (spring dynamics), gesture hover mikro, dan tata letak dinamis.' },
+  { name: 'Lenis', category: 'frontend', tag: 'Porto Engine', role: 'Smooth Scroll Core', desc: 'Inertial smooth scrolling berakurasi tinggi yang tersinkronisasi mulus dengan ScrollTrigger dan navigasi browser.' },
+  { name: 'Figma', category: 'design', tag: 'UI/UX Design', role: 'Interface Architecture', desc: 'Wireframing, perancangan sistem desain, auto-layout responsif, tipografi harmonis, dan prototyping antarmuka.' },
+  { name: 'Canva', category: 'design', tag: 'Visual Assets', role: 'Creative Layout', desc: 'Penyusunan tata letak visual cepat, aset grafis pendukung, branding presentasi, dan materi visual modern.' },
+  { name: 'Canva Affinity', category: 'design', tag: 'Vector Studio', role: 'Affinity Designer & Graphics', desc: 'Ilustrasi vektor presisi matematis, manipulasi grafis resolusi ultra tinggi, dan tipografi editorial berkelas.' }
+];
+
+export const DEFAULT_SOCIALS = {
+  github: { label: 'GITHUB', hoverLabel: '@BILLEAN', url: '' },
+  linkedin: { label: 'LINKEDIN', hoverLabel: 'CONNECT ↗', url: '' },
+  tiktok: { label: 'TIKTOK', hoverLabel: '@LEANN_DEV', url: '' },
+  instagram: { label: 'INSTAGRAM', hoverLabel: '@BILLEAN.UP', url: '' }
+};
+
+export const DEFAULT_SITE_CONTENT = {
+  history: DEFAULT_HISTORY,
+  technologies: DEFAULT_TECHNOLOGIES,
+  socials: DEFAULT_SOCIALS,
+  profileImage: '/profile.webp'
+};
+
+export function normalizeSiteContent(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return DEFAULT_SITE_CONTENT;
+  }
+
+  return {
+    history: Array.isArray(value.history) && value.history.length > 0 ? value.history : DEFAULT_HISTORY,
+    technologies: Array.isArray(value.technologies) && value.technologies.length > 0
+      ? value.technologies
+      : DEFAULT_TECHNOLOGIES,
+    socials: value.socials && typeof value.socials === 'object' && !Array.isArray(value.socials)
+      ? Object.fromEntries(
+        Object.entries(DEFAULT_SOCIALS).map(([platform, defaults]) => [
+          platform,
+          { ...defaults, ...(value.socials[platform] || {}) }
+        ])
+      )
+      : DEFAULT_SOCIALS,
+    profileImage: typeof value.profileImage === 'string' && value.profileImage.trim()
+      ? value.profileImage
+      : DEFAULT_SITE_CONTENT.profileImage
+  };
+}

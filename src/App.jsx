@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import Lenis from '@studio-freight/lenis';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
@@ -8,140 +8,23 @@ import MyApproach from './components/ui/MyApproach';
 import EditorialIntro from './components/ui/EditorialIntro';
 import HistoryJourney from './components/ui/HistoryJourney';
 import AboutPage from './components/ui/AboutPage';
+import { INITIAL_PROJECTS } from '../shared/initialProjects.js';
+import { normalizeProjects } from './lib/portfolioApi.js';
+import { DEFAULT_SITE_CONTENT, normalizeSiteContent } from './lib/siteContent.js';
 import './App.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const HomeScene = lazy(() => import('./components/3d/HomeScene'));
-
-// Kurasi data proyek dengan estetika standar Awwwards
-const CURATED_PROJECTS = [
-  {
-    id: 0,
-    title: "Tomorrowland x Tennis",
-    category: "SPATIAL WEB & AUDIO",
-    year: "2026",
-    image: "https://picsum.photos/seed/tennis9/600/800",
-    description: "Pengalaman 3D interaktif berskala global yang menggabungkan visual generative audio dengan eksplorasi ruang WebGL real-time.",
-    link: "https://awwwards.com",
-    textSide: "left"
-  },
-  {
-    id: 1,
-    title: "Manchester United VR",
-    category: "CREATIVE ENGINEERING",
-    year: "2025",
-    image: "https://picsum.photos/seed/manutd4/600/800",
-    description: "Platform digital stadion interaktif berbasis WebGL dengan simulasi pencahayaan fisik dan animasi kinetik dinamis.",
-    link: "https://awwwards.com",
-    textSide: "right"
-  },
-  {
-    id: 2,
-    title: "Skechers Football",
-    category: "3D COMMERCE & CAMPAIGN",
-    year: "2025",
-    image: "https://picsum.photos/seed/skech8/600/800",
-    description: "Eksplorasi visual 3D produk sepatu sepakbola dengan shader material kustom dan interaksi sentuh presisi tinggi.",
-    link: "https://awwwards.com",
-    textSide: "left"
-  },
-  {
-    id: 3,
-    title: "Tolu Arokodare",
-    category: "EDITORIAL IDENTITY",
-    year: "2025",
-    image: "https://picsum.photos/seed/tolu2/600/800",
-    description: "Portofolio editorial atletik dengan tipografi eksperimental, transisi viewport mulus, dan palet monokrom ultra-modern.",
-    link: "https://awwwards.com",
-    textSide: "right"
-  },
-  {
-    id: 4,
-    title: "Legia Warsaw Arena",
-    category: "ATMOSPHERIC WEB",
-    year: "2024",
-    image: "https://picsum.photos/seed/legia6/600/800",
-    description: "Pengalaman suporter digital dengan atmosfer flare pyro dinamis, efek partikel Three.js, dan arsitektur kode mutakhir.",
-    link: "https://awwwards.com",
-    textSide: "left"
-  },
-  {
-    id: 5,
-    title: "Aethelgard Spatial",
-    category: "WEBGL ARCHITECTURE",
-    year: "2024",
-    image: "https://picsum.photos/seed/aethel11/600/800",
-    description: "Instalasi arsitektur digital dengan sistem pencahayaan volumetrik dan topologi geometri responsif terhadap kursor.",
-    link: "https://awwwards.com",
-    textSide: "right"
-  },
-  {
-    id: 6,
-    title: "Chronos AI System",
-    category: "DESIGN SYSTEM & TOOLS",
-    year: "2024",
-    image: "https://picsum.photos/seed/chronos5/600/800",
-    description: "Antarmuka kecerdasan buatan masa depan dengan feedback visual haptik dan micro-interaksi fluid berkecepatan 60 FPS.",
-    link: "https://awwwards.com",
-    textSide: "left"
-  },
-  {
-    id: 7,
-    title: "Monolith Sound Lab",
-    category: "INTERACTIVE AUDIO",
-    year: "2024",
-    image: "https://picsum.photos/seed/sound3/600/800",
-    description: "Sintesis suara browser real-time yang merespons gerak kursor dan gelombang frekuensi kinetik dinamis.",
-    link: "https://awwwards.com",
-    textSide: "right"
-  },
-  {
-    id: 8,
-    title: "Verve Kinetic Type",
-    category: "EXPERIMENTAL TYPOGRAPHY",
-    year: "2024",
-    image: "https://picsum.photos/seed/type17/600/800",
-    description: "Eksplorasi tipografi variabel dengan deformasi mesh dinamis pada interaksi scroll dan pointer fisik.",
-    link: "https://awwwards.com",
-    textSide: "left"
-  },
-  {
-    id: 9,
-    title: "Lumina Studio Lab",
-    category: "BRAND EXPERIENCE",
-    year: "2024",
-    image: "https://picsum.photos/seed/lumina14/600/800",
-    description: "Identitas digital agensi kreatif dengan kurasi galeri interaktif 3D dan transisi halaman tanpa henti.",
-    link: "https://awwwards.com",
-    textSide: "right"
-  },
-  {
-    id: 10,
-    title: "Solstice Horizon",
-    category: "NARRATIVE 3D SCENE",
-    year: "2023",
-    image: "https://picsum.photos/seed/solstice22/600/800",
-    description: "Perjalanan naratif interaktif dengan pergantian siklus siang-malam berbasis shader kustom WebGL.",
-    link: "https://awwwards.com",
-    textSide: "left"
-  },
-  {
-    id: 11,
-    title: "Apex Hyperdrive",
-    category: "PRODUCT REVEAL",
-    year: "2023",
-    image: "https://picsum.photos/seed/apex29/600/800",
-    description: "Visualisasi 3D konsep supercar dengan x-ray blueprint mode dan ledakan partikel suku cadang real-time.",
-    link: "https://awwwards.com",
-    textSide: "right"
-  }
-];
+const AdminDashboard = lazy(() => import('./components/ui/AdminDashboard'));
 
 export default function App() {
   const [loadingComplete, setLoadingComplete] = useState(false);
-  const [currentView, setCurrentView] = useState('home'); // 'home' | 'about'
-  const [projects] = useState(CURATED_PROJECTS);
+  const [currentView, setCurrentView] = useState(() => window.location.pathname === '/admin' ? 'admin' : 'home');
+  const lenisRef = useRef(null);
+  const [projects, setProjects] = useState(INITIAL_PROJECTS);
+  const [projectApiError, setProjectApiError] = useState('');
+  const [siteContent, setSiteContent] = useState(DEFAULT_SITE_CONTENT);
 
   const [hoveredProject, setHoveredProject] = useState(null);
   const [clickedProject, setClickedProject] = useState(null);
@@ -161,28 +44,117 @@ export default function App() {
     instagram: "INSTAGRAM",
     linkedin: "LINKEDIN"
   });
+  const [socialLinks, setSocialLinks] = useState(DEFAULT_SITE_CONTENT.socials);
 
-  // Navigasi halaman dan scroll ke atas secara instan
-  const navigateTo = (view) => {
-    setCurrentView(view);
-    if (view === 'home') setActiveSection('works');
-    window.scrollTo({ top: 0, behavior: 'instant' });
+  const scrollToPosition = (target, sectionName) => {
+    if (sectionName) setActiveSection(sectionName);
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(target, { duration: 1.25, force: true });
+    } else {
+      window.scrollTo({ top: target, behavior: 'smooth' });
+    }
   };
 
   const navigateToSection = (sectionId, sectionName) => {
-    setActiveSection(sectionName);
+    const moveToSection = (attempt = 0) => {
+      let target;
+      if (sectionId === 'section-history' || sectionId === 'section-contact') {
+        const historySection = document.getElementById('section-history');
+        const pinSpacer = historySection?.parentElement;
+        if (pinSpacer?.classList.contains('pin-spacer')) {
+          const start = pinSpacer.getBoundingClientRect().top + window.scrollY;
+          const scrollDuration = pinSpacer.offsetHeight - window.innerHeight;
+          const progress = sectionId === 'section-contact' ? 0.97 : 0;
+          target = start + scrollDuration * progress;
+        }
+      } else {
+        const section = document.getElementById(sectionId);
+        if (section) target = section.getBoundingClientRect().top + window.scrollY - 72;
+      }
+
+      if (target === undefined) {
+        if (attempt < 60) requestAnimationFrame(() => moveToSection(attempt + 1));
+        return;
+      }
+      scrollToPosition(target, sectionName);
+    };
+
     if (currentView !== 'home') {
+      if (window.location.pathname !== '/') window.history.pushState({}, '', '/');
       setCurrentView('home');
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
-        });
-      });
+      requestAnimationFrame(() => requestAnimationFrame(() => moveToSection()));
       return;
     }
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    moveToSection();
   };
+
+  const navigateTo = (view) => {
+    if (view === 'home') {
+      if (currentView !== 'home') {
+        if (window.location.pathname !== '/') window.history.pushState({}, '', '/');
+        setCurrentView('home');
+        requestAnimationFrame(() => requestAnimationFrame(() => scrollToPosition(0, 'works')));
+      } else {
+        scrollToPosition(0, 'works');
+      }
+      return;
+    }
+    const nextPath = view === 'admin' ? '/admin' : '/';
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState({}, '', nextPath);
+    }
+    setCurrentView(view);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  const refreshProjects = async () => {
+    try {
+      const response = await fetch('/api/projects');
+      if (!response.ok) throw new Error('Tidak dapat memuat daftar proyek dari backend.');
+      setProjects(normalizeProjects(await response.json()));
+      setProjectApiError('');
+    } catch (error) {
+      setProjectApiError(error.message);
+      throw error;
+    }
+  };
+
+  const refreshSiteContent = async () => {
+    const response = await fetch('/api/content');
+    if (!response.ok) throw new Error('Tidak dapat memuat konten situs dari backend.');
+    const saved = await response.json();
+    const content = normalizeSiteContent(saved);
+    setSiteContent(content);
+    setSocialLinks(content.socials);
+    setSocials(Object.fromEntries(Object.entries(content.socials).map(([key, social]) => [key, social.label])));
+  };
+
+  const navigateToContact = () => {
+    navigateToSection('section-contact', 'contact');
+  };
+
+  const handleContactActive = useCallback((isActive) => {
+    setActiveSection(isActive ? 'contact' : 'history');
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const nextView = window.location.pathname === '/admin' ? 'admin' : 'home';
+      setCurrentView(nextView);
+      if (nextView === 'home') setActiveSection('works');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    refreshProjects().catch((error) => {
+      console.error('Portfolio API could not be loaded:', error);
+    });
+    refreshSiteContent().catch((error) => {
+      console.error('Portfolio content API could not be loaded:', error);
+    });
+  }, []);
 
   useEffect(() => {
     const checkDevice = () => {
@@ -250,7 +222,7 @@ export default function App() {
   }, [currentView]);
 
   useEffect(() => {
-    if (currentView !== 'about') return;
+    if (!['about', 'admin'].includes(currentView)) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -264,10 +236,11 @@ export default function App() {
     if (currentView !== 'home') return;
 
     const lenis = new Lenis({
-      duration: 1.25,
+      duration: 0.9,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true
     });
+    lenisRef.current = lenis;
 
     lenis.on('scroll', ScrollTrigger.update);
 
@@ -280,10 +253,16 @@ export default function App() {
 
     let mm = gsap.matchMedia();
     const heroScrollConfig = {
-      trigger: "#main-scroll-track",
+      trigger: "#section-project-gallery",
       start: "top top",
-      end: "450px top",
-      scrub: 1.2
+      end: () => {
+        const gallery = document.getElementById('section-project-gallery');
+        const transitionDistance = gallery
+          ? (gallery.offsetHeight - window.innerHeight) * 0.14
+          : window.innerHeight;
+        return `+=${Math.max(1, transitionDistance)}`;
+      },
+      scrub: 0.55
     };
 
     mm.add("(min-width: 768px)", () => {
@@ -292,14 +271,12 @@ export default function App() {
         y: -140,
         scale: 0.94,
         opacity: 0,
-        filter: 'blur(10px)',
         scrollTrigger: heroScrollConfig
       });
       gsap.to('.hero-bg-text-container', {
         scale: 1.12,
         y: -60,
         opacity: 0,
-        filter: 'blur(16px)',
         scrollTrigger: heroScrollConfig
       });
 
@@ -311,7 +288,6 @@ export default function App() {
       gsap.to('.soc-gh, .soc-li, .soc-tk, .soc-ig', {
         y: 35,
         opacity: 0,
-        filter: 'blur(8px)',
         pointerEvents: 'none',
         scrollTrigger: {
           trigger: '#section-approach',
@@ -326,7 +302,6 @@ export default function App() {
       gsap.to('.hero-content-wrapper', {
         y: -60,
         opacity: 0,
-        filter: 'blur(8px)',
         scrollTrigger: heroScrollConfig
       });
       gsap.to('.hero-bg-text-container', {
@@ -341,6 +316,7 @@ export default function App() {
 
     return () => {
       cancelAnimationFrame(reqId);
+      if (lenisRef.current === lenis) lenisRef.current = null;
       lenis.destroy();
       mm.revert();
     };
@@ -447,7 +423,7 @@ export default function App() {
         {/* Menu Nav Links: Rapi & Minimalis */}
         <div style={{
           display: 'flex',
-          gap: isMobile ? '1.4rem' : '3.2rem',
+          gap: isMobile ? '1rem' : '2rem',
           fontFamily: 'var(--font-mono)',
           fontSize: isMobile ? '0.75rem' : '0.86rem',
           fontWeight: '600',
@@ -526,20 +502,47 @@ export default function App() {
             About
           </span>
           <a
-            href="mailto:contact@billean.dev"
+            href="#section-contact"
             className="nav-link"
+            onClick={(event) => {
+              event.preventDefault();
+              navigateToContact();
+            }}
             onMouseEnter={onHover}
             onMouseLeave={onLeave}
             style={{
               cursor: 'pointer',
               textDecoration: 'none',
-              color: 'rgba(255,255,255,0.6)'
+              color: currentView === 'home' && activeSection === 'contact' ? '#ffffff' : 'rgba(255,255,255,0.6)',
+              borderBottom: currentView === 'home' && activeSection === 'contact' ? '2px solid #ffffff' : 'none',
+              paddingBottom: '2px'
             }}
           >
             Contact
           </a>
         </div>
       </nav>
+
+      {projectApiError && currentView === 'home' && (
+        <div
+          role="status"
+          style={{
+            position: 'fixed',
+            top: isMobile ? '4.8rem' : '6rem',
+            right: isMobile ? '1rem' : '2rem',
+            zIndex: 200,
+            maxWidth: 'min(420px, calc(100vw - 2rem))',
+            padding: '10px 14px',
+            color: '#ffd0a1',
+            background: 'rgba(55, 30, 10, 0.92)',
+            border: '1px solid rgba(255, 190, 120, 0.35)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.7rem'
+          }}
+        >
+          Backend tidak tersambung. Proyek yang ditampilkan adalah data awal dan perubahan admin tidak dapat disimpan.
+        </div>
+      )}
 
       {/* Social Links di Sudut Bawah */}
       <div style={{
@@ -556,44 +559,60 @@ export default function App() {
         fontWeight: '600',
         letterSpacing: '2px'
       }}>
-        <span
+        <a
+          href={socialLinks.github.url || undefined}
+          target={socialLinks.github.url ? '_blank' : undefined}
+          rel={socialLinks.github.url ? 'noreferrer' : undefined}
           className="soc-gh"
-          onMouseEnter={() => { onHover(); setSocials((p) => ({ ...p, github: "@BILLEAN" })); }}
-          onMouseLeave={() => { onLeave(); setSocials((p) => ({ ...p, github: "GITHUB" })); }}
-          style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'auto', cursor: 'pointer' }}
+          onMouseEnter={() => { onHover(); setSocials((p) => ({ ...p, github: socialLinks.github.hoverLabel })); }}
+          onMouseLeave={() => { onLeave(); setSocials((p) => ({ ...p, github: socialLinks.github.label })); }}
+          onClick={(event) => { if (!socialLinks.github.url) event.preventDefault(); }}
+          style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'auto', cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}
         >
           {socials.github}
-        </span>
-        <span
-          className="soc-li"
-          onMouseEnter={() => { onHover(); setSocials((p) => ({ ...p, linkedin: "CONNECT ↗" })); }}
-          onMouseLeave={() => { onLeave(); setSocials((p) => ({ ...p, linkedin: "LINKEDIN" })); }}
-          style={{ position: 'absolute', top: '22px', left: 0, pointerEvents: 'auto', cursor: 'pointer' }}
+        </a>
+        <a
+        href={socialLinks.linkedin.url || undefined}
+        target={socialLinks.linkedin.url ? '_blank' : undefined}
+        rel={socialLinks.linkedin.url ? 'noreferrer' : undefined}
+        className="soc-li"
+        onMouseEnter={() => { onHover(); setSocials((p) => ({ ...p, linkedin: socialLinks.linkedin.hoverLabel })); }}
+        onMouseLeave={() => { onLeave(); setSocials((p) => ({ ...p, linkedin: socialLinks.linkedin.label })); }}
+        onClick={(event) => { if (!socialLinks.linkedin.url) event.preventDefault(); }}
+        style={{ position: 'absolute', top: '22px', left: 0, pointerEvents: 'auto', cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}
         >
-          {socials.linkedin}
-        </span>
-        <span
-          className="soc-tk"
-          onMouseEnter={() => { onHover(); setSocials((p) => ({ ...p, tiktok: "@LEANN_DEV" })); }}
-          onMouseLeave={() => { onLeave(); setSocials((p) => ({ ...p, tiktok: "TIKTOK" })); }}
-          style={{ position: 'absolute', top: 0, right: 0, pointerEvents: 'auto', cursor: 'pointer' }}
+        {socials.linkedin}
+        </a>
+        <a
+        href={socialLinks.tiktok.url || undefined}
+        target={socialLinks.tiktok.url ? '_blank' : undefined}
+        rel={socialLinks.tiktok.url ? 'noreferrer' : undefined}
+        className="soc-tk"
+        onMouseEnter={() => { onHover(); setSocials((p) => ({ ...p, tiktok: socialLinks.tiktok.hoverLabel })); }}
+        onMouseLeave={() => { onLeave(); setSocials((p) => ({ ...p, tiktok: socialLinks.tiktok.label })); }}
+        onClick={(event) => { if (!socialLinks.tiktok.url) event.preventDefault(); }}
+        style={{ position: 'absolute', top: 0, right: 0, pointerEvents: 'auto', cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}
         >
-          {socials.tiktok}
-        </span>
-        <span
-          className="soc-ig"
-          onMouseEnter={() => { onHover(); setSocials((p) => ({ ...p, instagram: "@BILLEAN.UP" })); }}
-          onMouseLeave={() => { onLeave(); setSocials((p) => ({ ...p, instagram: "INSTAGRAM" })); }}
-          style={{ position: 'absolute', top: '22px', right: 0, pointerEvents: 'auto', cursor: 'pointer' }}
+        {socials.tiktok}
+        </a>
+        <a
+        href={socialLinks.instagram.url || undefined}
+        target={socialLinks.instagram.url ? '_blank' : undefined}
+        rel={socialLinks.instagram.url ? 'noreferrer' : undefined}
+        className="soc-ig"
+        onMouseEnter={() => { onHover(); setSocials((p) => ({ ...p, instagram: socialLinks.instagram.hoverLabel })); }}
+        onMouseLeave={() => { onLeave(); setSocials((p) => ({ ...p, instagram: socialLinks.instagram.label })); }}
+        onClick={(event) => { if (!socialLinks.instagram.url) event.preventDefault(); }}
+        style={{ position: 'absolute', top: '22px', right: 0, pointerEvents: 'auto', cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}
         >
-          {socials.instagram}
-        </span>
+        {socials.instagram}
+        </a>
       </div>
 
       {/* Keep the home scene mounted so its WebGL textures survive About navigation. */}
       <div
         key="home-view"
-        aria-hidden={currentView === 'about'}
+        aria-hidden={currentView !== 'home'}
         style={{
           visibility: currentView === 'home' ? 'visible' : 'hidden',
           pointerEvents: currentView === 'home' ? 'auto' : 'none'
@@ -601,17 +620,19 @@ export default function App() {
       >
             {/* 3D Canvas: Bintang Kosmik di Latar Belakang, Orbit Melingkar di Hero & Pegas 3D di Section 2 */}
             <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1 }}>
-              <Suspense fallback={null}>
-                <HomeScene
-                  projects={projects}
-                  loadingComplete={loadingComplete}
-                  activeProject={activeProject}
-                  clickedProject={clickedProject}
-                  setHoveredProject={setHoveredProject}
-                  setClickedProject={setClickedProject}
-                  isMainTrackVisible={isMainTrackVisible && currentView === 'home'}
-                />
-              </Suspense>
+              {currentView !== 'admin' && (
+                <Suspense fallback={null}>
+                  <HomeScene
+                    projects={projects}
+                    loadingComplete={loadingComplete}
+                    activeProject={activeProject}
+                    clickedProject={clickedProject}
+                    setHoveredProject={setHoveredProject}
+                    setClickedProject={setClickedProject}
+                    isMainTrackVisible={isMainTrackVisible && currentView === 'home'}
+                  />
+                </Suspense>
+              )}
             </div>
 
             {/* Background Kinetic Typography (Atmosfer Tipografi Editorial yang Lembut) */}
@@ -647,19 +668,19 @@ export default function App() {
 
             {/* Main Scroll Track: Section 1 (Hero) -> Section 2 (Pegas Helix 3D) */}
             <div id="main-scroll-track" style={{ position: 'relative', zIndex: 10, pointerEvents: 'none' }}>
-              {/* SECTION 1: HERO SECTION — BERSIH, RAPI, FOKUS PADA NAMA TANPA BERTABRAKAN DENGAN KARTU */}
+              {/* SECTION 1: HERO SECTION — PROJECT CARDS ORBIT BEHIND THE CENTERED NAME */}
               <section
                 style={{
                   height: '100vh',
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'flex-start',
+                  justifyContent: 'center',
                   alignItems: 'center',
                   position: 'relative',
                   zIndex: 50,
                   opacity: loadingComplete ? 1 : 0,
                   transition: 'opacity 1.5s ease',
-                  paddingTop: isMobile ? '16vh' : '13vh',
+                  paddingTop: 0,
                   paddingLeft: '20px',
                   paddingRight: '20px',
                   boxSizing: 'border-box'
@@ -739,7 +760,13 @@ export default function App() {
               </section>
 
               {/* SECTION 2: TRACK SPESIFIK UNTUK EKSPLORASI PEGAS HELIX 3D */}
-              <section style={{ height: `${projects.length * 60}vh`, position: 'relative' }}>
+              <section
+                id="section-project-gallery"
+                style={{
+                  height: `${100 + Math.max(1, projects.length) * 120}vh`,
+                  position: 'relative'
+                }}
+              >
                 <div
                   style={{
                     position: 'sticky',
@@ -797,6 +824,8 @@ export default function App() {
               isMobile={isMobile}
               onHover={onHover}
               onLeave={onLeave}
+              onContactActive={handleContactActive}
+              timelineData={siteContent.history}
             />
       </div>
 
@@ -808,9 +837,20 @@ export default function App() {
             isMobile={isMobile}
             onHover={onHover}
             onLeave={onLeave}
+            technologies={siteContent.technologies}
+            profileImage={siteContent.profileImage}
           />
         )}
       </AnimatePresence>
+      {currentView === 'admin' && (
+        <Suspense fallback={null}>
+          <AdminDashboard
+            onClose={() => navigateTo('home')}
+            onProjectsChanged={refreshProjects}
+            onSiteContentChanged={refreshSiteContent}
+          />
+        </Suspense>
+      )}
 
       {/* Active Project Modal / Case Study Drawer */}
       <AnimatePresence>

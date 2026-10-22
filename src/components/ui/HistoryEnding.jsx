@@ -141,6 +141,7 @@ export default function HistoryEnding({
 
   return (
     <div
+      id="section-contact"
       ref={containerRef}
       onMouseMove={handleMouseMove}
       style={{

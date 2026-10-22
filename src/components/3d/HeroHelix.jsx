@@ -9,6 +9,8 @@ gsap.registerPlugin(ScrollTrigger);
 
 // Helper linear interpolation
 const lerp = (start, end, factor) => start + (end - start) * factor;
+const HELIX_RADIUS = 4.5;
+const HELIX_CARD_SPACING = 8.2;
 
 function HelixCard({
   proj,
@@ -18,49 +20,50 @@ function HelixCard({
   setHoveredProject,
   clickedProject,
   setClickedProject,
-  scrollProgressRef,
+  galleryProgressRef,
+  galleryExitProgressRef,
   idleAngleRef
 }) {
   const groupRef = useRef();
   const frontImageRef = useRef();
-  const backImageRef = useRef();
-  const baseScale = [3.8, 5.2];
+  const baseScale = [8, 4.5];
 
   useFrame((state, delta) => {
     if (!groupRef.current) return;
 
-    const scrollP = scrollProgressRef.current;
+    const galleryProgress = galleryProgressRef.current;
     
-    // Transisi dari orbit (hero) ke pegas (section 2):
-    // 0 -> 0.16 : Dari orbit melingkar menyatu membentuk pegas
-    // 0.16 -> 1.0 : Pegas berputar dan naik menyusuri galeri
-    const t = Math.min(1, Math.max(0, scrollP / 0.16));
-    const blend = t * t * (3 - 2 * t); // Smooth hermite curve
+    // Stagger the cards slightly so the orbit resolves into the helix progressively.
+    const transitionStagger = Math.min(0.04, index * 0.004);
+    const transitionProgress = Math.min(
+      1,
+      Math.max(0, (galleryProgress - transitionStagger) / (0.14 - transitionStagger))
+    );
+    const blend = transitionProgress ** 3
+      * (transitionProgress * (transitionProgress * 6 - 15) + 10);
 
-    // 1. Posisi Orbit (Hero Section) — Diposisikan di area bawah-tengah agar tidak bertabrakan dengan teks nama
-    const angleOrbit = (index / totalLength) * Math.PI * 2 + idleAngleRef.current;
-    const orbitRadiusX = 14.2;
-    const orbitRadiusZ = 10.2;
-    const ox = Math.cos(angleOrbit) * orbitRadiusX;
-    const oz = Math.sin(angleOrbit) * orbitRadiusZ;
-    
-    // Ketinggian Y hero orbit:
-    // Kartu depan (oz > 0) sedikit melengkung ke bawah (y ~ -3.6 s/d -4.0) memberi ruang lega bagi nama di atas
-    // Kartu belakang (oz < 0) sedikit lebih tinggi dan jauh di latar belakang
-    const frontDip = oz > 0 ? (oz / orbitRadiusZ) * 0.9 : (oz / orbitRadiusZ) * 0.4;
-    const oy = -3.2 - frontDip + Math.sin(index * 1.2 + idleAngleRef.current * 0.3) * 0.35;
-    
-    const oRotY = -angleOrbit + Math.PI / 2;
-    const oRotX = 0.08 + (oz > 0 ? (oz / orbitRadiusZ) * 0.06 : 0); // Sedikit kemiringan amfiteater ke arah kamera
-    const oRotZ = Math.cos(angleOrbit) * -0.04;
+    // Orbit the project cards behind the centered name before they form the spring.
+    const arcAngle = (index / Math.max(1, totalLength)) * Math.PI * 2 + idleAngleRef.current;
+    const orbitRadiusX = 11.8;
+    const orbitRadiusY = 5.1;
+    const ox = Math.cos(arcAngle) * orbitRadiusX;
+    const oy = Math.sin(arcAngle) * orbitRadiusY;
+    const oz = -2.8 + Math.cos(arcAngle * 2) * 0.45;
+    const orbitCircumference = Math.PI * 2 * Math.sqrt((orbitRadiusX ** 2 + orbitRadiusY ** 2) / 2);
+    const orbitCardScale = Math.min(
+      0.52,
+      (orbitCircumference / Math.max(1, totalLength)) * 0.76 / baseScale[0]
+    );
+    const oRotY = Math.atan2(-ox, 16 - oz);
+    const oRotX = Math.sin(arcAngle) * 0.025;
+    const oRotZ = Math.sin(arcAngle) * -0.035;
 
     // 2. Posisi Pegas / Helix (Section 2)
     const helixAngle = index * 0.72;
-    const helixRadius = 7.8;
-    const hx = Math.cos(helixAngle) * helixRadius;
-    const hz = Math.sin(helixAngle) * helixRadius;
-    const hy = index * 1.8 - (totalLength * 1.8) / 2;
-    const hRotY = -helixAngle + Math.PI / 2;
+    const hx = Math.cos(helixAngle) * HELIX_RADIUS;
+    const hz = Math.sin(helixAngle) * HELIX_RADIUS;
+    const hy = (index - (totalLength - 1) / 2) * HELIX_CARD_SPACING;
+    const hRotY = Math.atan2(-hx, 16 - hz);
     const hRotX = 0;
     const hRotZ = 0;
 
@@ -72,13 +75,14 @@ function HelixCard({
     groupRef.current.rotation.x = lerp(oRotX, hRotX, blend);
     groupRef.current.rotation.y = lerp(oRotY, hRotY, blend);
     groupRef.current.rotation.z = lerp(oRotZ, hRotZ, blend);
+    groupRef.current.scale.setScalar(lerp(orbitCardScale, 1, blend));
 
-    // 4. Efek fokus interaktif saat kartu di-hover / di-klik (skala & transparansi kedua sisi)
+    // 4. Efek fokus interaktif saat kartu di-hover / di-klik
     const isFocused = activeProject && activeProject.id === proj.id;
     const hasActive = activeProject !== null;
 
-    // Transisi keluar halus saat mendekati Section 3 (scrollP > 0.85)
-    const exitProgress = Math.min(1, Math.max(0, (scrollP - 0.85) / 0.15));
+    // Keep the last project visible until the gallery scroll is almost complete.
+    const exitProgress = galleryExitProgressRef.current;
     const exitFade = 1 - exitProgress;
 
     const targetOpacity = (isFocused ? 1 : (hasActive ? 0.25 : 0.95)) * exitFade;
@@ -97,24 +101,13 @@ function HelixCard({
       frontImageRef.current.scale.y = THREE.MathUtils.lerp(frontImageRef.current.scale.y, targetScaleY, delta * 6);
     }
 
-    if (backImageRef.current && backImageRef.current.material) {
-      const targetBackOpacity = (isFocused ? 0.85 : (hasActive ? 0.2 : 0.65)) * exitFade;
-      backImageRef.current.material.opacity = THREE.MathUtils.lerp(
-        backImageRef.current.material.opacity,
-        targetBackOpacity,
-        delta * 6
-      );
-      backImageRef.current.scale.x = THREE.MathUtils.lerp(backImageRef.current.scale.x, targetScaleX, delta * 6);
-      backImageRef.current.scale.y = THREE.MathUtils.lerp(backImageRef.current.scale.y, targetScaleY, delta * 6);
-    }
   });
 
   return (
     <group ref={groupRef}>
-      {/* 1. SEPARATOR CORE / BACKING GELAP DI TENGAH (Z = 0)
-          Mencegah teks depan tembus terbalik ke belakang dan teks belakang tembus ke depan */}
+      {/* Backing keeps neighboring card faces from showing through. */}
       <mesh position={[0, 0, 0]}>
-        <planeGeometry args={[3.88, 5.28]} />
+        <planeGeometry args={[8.1, 5.05]} />
         <meshBasicMaterial color="#080808" />
       </mesh>
 
@@ -148,7 +141,7 @@ function HelixCard({
 
         {/* Index Badge Depan */}
         <Text
-          position={[-1.6, 2.25, 0.04]}
+          position={[-3.5, 2.12, 0.04]}
           fontSize={0.18}
           color="#ffffff"
           fillOpacity={0.85}
@@ -161,13 +154,13 @@ function HelixCard({
 
         {/* Judul Proyek di Kartu Depan */}
         <Text
-          position={[0, -1.85, 0.04]}
-          fontSize={0.21}
+          position={[0, -1.82, 0.04]}
+          fontSize={0.26}
           color="#ffffff"
           fillOpacity={0.98}
           anchorX="center"
           anchorY="top"
-          maxWidth={3.4}
+          maxWidth={7}
           textAlign="center"
           fontWeight={700}
         >
@@ -176,8 +169,8 @@ function HelixCard({
 
         {/* Kategori Proyek Depan */}
         <Text
-          position={[0, -2.18, 0.04]}
-          fontSize={0.13}
+          position={[0, -2.16, 0.04]}
+          fontSize={0.16}
           color="#ffffff"
           fillOpacity={0.6}
           anchorX="center"
@@ -188,86 +181,6 @@ function HelixCard({
         </Text>
       </group>
 
-      {/* 3. SISI BELAKANG (BACK FACE - Z < 0)
-          Diputar 180 derajat (rotation Y = Math.PI) sehingga saat kartu memutar ke belakang,
-          gambar dan teks menghadap kamera dengan orientasi yang benar (tidak terbalik),
-          serta gambarnya terlihat dengan nuansa sedikit gelap (dimmed) */}
-      <group position={[0, 0, -0.015]} rotation={[0, Math.PI, 0]}>
-        {/* Gambar Proyek Belakang (Sedikit Gelap / Dimmed) */}
-        <Image
-          ref={backImageRef}
-          url={proj.image}
-          scale={baseScale}
-          transparent
-          opacity={0.65}
-          color="#5a5a5a" // Warna dikalikan abu-abu gelap agar gambarnya sedikit gelap
-          onPointerOver={(e) => {
-            e.stopPropagation();
-            document.body.style.cursor = 'pointer';
-            setHoveredProject(proj);
-          }}
-          onPointerOut={(e) => {
-            e.stopPropagation();
-            document.body.style.cursor = 'auto';
-            setHoveredProject(null);
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (clickedProject && clickedProject.id === proj.id) {
-              setClickedProject(null);
-            } else {
-              setClickedProject(proj);
-            }
-          }}
-        />
-
-        {/* Lapisan Tint Gelap Semi-Transparan untuk kedalaman visual */}
-        <mesh position={[0, 0, 0.005]}>
-          <planeGeometry args={[baseScale[0], baseScale[1]]} />
-          <meshBasicMaterial color="#000000" transparent opacity={0.32} />
-        </mesh>
-
-        {/* Index Badge Belakang */}
-        <Text
-          position={[1.6, 2.25, 0.02]}
-          fontSize={0.18}
-          color="#ffffff"
-          fillOpacity={0.45}
-          anchorX="right"
-          anchorY="top"
-          fontWeight={700}
-        >
-          {`0${index + 1}`.slice(-2)}
-        </Text>
-
-        {/* Judul Proyek di Kartu Belakang (Subdued / Redup) */}
-        <Text
-          position={[0, -1.85, 0.02]}
-          fontSize={0.21}
-          color="#ffffff"
-          fillOpacity={0.65}
-          anchorX="center"
-          anchorY="top"
-          maxWidth={3.4}
-          textAlign="center"
-          fontWeight={700}
-        >
-          {proj.title}
-        </Text>
-
-        {/* Kategori Proyek Belakang */}
-        <Text
-          position={[0, -2.18, 0.02]}
-          fontSize={0.13}
-          color="#ffffff"
-          fillOpacity={0.38}
-          anchorX="center"
-          anchorY="top"
-          letterSpacing={0.12}
-        >
-          {proj.category || "SPATIAL & INTERACTION"}
-        </Text>
-      </group>
     </group>
   );
 }
@@ -283,53 +196,62 @@ export default function HeroHelix({
   const masterGroupRef = useRef();
   const { camera } = useThree();
 
-  const scrollProgressRef = useRef(0);
+  const galleryProgressRef = useRef(0);
+  const galleryExitProgressRef = useRef(0);
   const idleAngleRef = useRef(0);
 
   useEffect(() => {
     if (!isLoaded || !masterGroupRef.current) return;
 
     // Posisi kamera awal di level mata depan (perspektif mendalam seperti awwwards)
-    camera.position.set(0, 0, 22);
+    camera.position.set(0, 0, 16);
     camera.lookAt(0, 0, 0);
 
     let ctx = gsap.context(() => {
       ScrollTrigger.create({
-        trigger: "#main-scroll-track",
+        trigger: "#section-project-gallery",
         start: "top top",
         end: "bottom bottom",
-        scrub: 1.2,
         onUpdate: (self) => {
-          scrollProgressRef.current = self.progress;
-        }
+          galleryProgressRef.current = self.progress;
+        },
+        onRefresh: (self) => {
+          galleryProgressRef.current = self.progress;
+        },
+      });
+      ScrollTrigger.create({
+        trigger: "#section-approach",
+        start: "top bottom",
+        end: "top 60%",
+        onUpdate: (self) => {
+          galleryExitProgressRef.current = self.progress;
+        },
+        onRefresh: (self) => {
+          galleryExitProgressRef.current = self.progress;
+        },
       });
     });
 
+    ScrollTrigger.refresh();
     return () => ctx.revert();
-  }, [isLoaded, camera]);
+  }, [isLoaded, camera, projects.length]);
 
   useFrame((state, delta) => {
-    const scrollP = scrollProgressRef.current;
+    const galleryProgress = galleryProgressRef.current;
 
-    // Idle rotation aktif di hero section (scrollP < 0.16)
-    const heroIdleFactor = Math.max(0, 1 - scrollP / 0.16);
-    idleAngleRef.current += delta * 0.16 * heroIdleFactor;
+    // Idle rotation aktif sebelum galeri selesai terbentuk.
+    const heroIdleFactor = Math.max(0, 1 - galleryProgress / 0.14);
+    idleAngleRef.current += delta * 0.22 * heroIdleFactor;
 
-    // Saat scroll memasuki galeri (scrollP > 0.16), seluruh pegas diputar dan digeser ke atas
+    // Keep each helix card facing the camera while scrolling through the archive.
     if (masterGroupRef.current) {
-      if (scrollP > 0.16) {
-        const galleryProgress = Math.min(1, Math.max(0, (scrollP - 0.16) / 0.84));
-        // Memutar pegas seiring scroll galeri hingga ujung pegas terlihat
-        masterGroupRef.current.rotation.y = galleryProgress * Math.PI * 5.2;
-        const targetY = galleryProgress * (projects.length * 1.8);
+      const transition = Math.min(1, Math.max(0, galleryProgress / 0.12));
+      const scanProgress = Math.min(1, Math.max(0, (galleryProgress - 0.12) / 0.88));
+      const gallerySpan = Math.max(0, projects.length - 1) * HELIX_CARD_SPACING;
 
-        masterGroupRef.current.position.y = targetY;
-        masterGroupRef.current.scale.set(1, 1, 1);
-      } else {
-        masterGroupRef.current.rotation.y = 0;
-        masterGroupRef.current.position.y = 0;
-        masterGroupRef.current.scale.set(1, 1, 1);
-      }
+      masterGroupRef.current.rotation.y = 0;
+      masterGroupRef.current.position.y = (0.5 - scanProgress) * gallerySpan * transition;
+      masterGroupRef.current.scale.set(1, 1, 1);
     }
   });
 
@@ -337,7 +259,7 @@ export default function HeroHelix({
     <group ref={masterGroupRef}>
       {projects.map((proj, index) => (
         <HelixCard
-          key={proj.id}
+          key={proj.id ?? proj.ID ?? `${proj.title}-${index}`}
           proj={proj}
           index={index}
           totalLength={projects.length}
@@ -345,7 +267,8 @@ export default function HeroHelix({
           setHoveredProject={setHoveredProject}
           clickedProject={clickedProject}
           setClickedProject={setClickedProject}
-          scrollProgressRef={scrollProgressRef}
+          galleryProgressRef={galleryProgressRef}
+          galleryExitProgressRef={galleryExitProgressRef}
           idleAngleRef={idleAngleRef}
         />
       ))}

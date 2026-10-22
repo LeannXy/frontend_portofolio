@@ -1,37 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DEFAULT_TECHNOLOGIES } from '../../lib/siteContent.js';
 
-export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) {
-  // Foto Profil: Menggunakan default /profile.jpg atau foto kustom yang diunggah pengguna (disimpan di localStorage)
-  const [profileImage, setProfileImage] = useState(() => {
-    return localStorage.getItem('billean_custom_portrait') || '/profile.jpg';
-  });
+export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, technologies = DEFAULT_TECHNOLOGIES, profileImage = '/profile.webp' }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [hoveredCard, setHoveredCard] = useState(null);
-  const fileInputRef = useRef(null);
-
-  // Handler jika pengguna ingin mengganti foto dengan foto pribadinya langsung dari komputer
-  const handlePhotoUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64Data = reader.result;
-        setProfileImage(base64Data);
-        try {
-          localStorage.setItem('billean_custom_portrait', base64Data);
-        } catch (err) {
-          console.warn('Ukuran foto terlalu besar untuk localStorage, foto tetap tampil di sesi ini.', err);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleResetPhoto = () => {
-    localStorage.removeItem('billean_custom_portrait');
-    setProfileImage('/profile.jpg');
-  };
 
   // Kurasi Teknologi yang Dipelajari & Digunakan (Sesuai Permintaan)
   const techCategories = [
@@ -40,121 +13,6 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) 
     { id: 'database', label: 'DATABASE & DATA' },
     { id: 'frontend', label: 'FRONTEND & PORTO STACK' },
     { id: 'design', label: 'DESAIN & KREATIF' }
-  ];
-
-  const technologies = [
-    {
-      name: 'Laravel 13',
-      category: 'backend',
-      tag: 'Primary Framework',
-      role: 'Backend Architecture',
-      desc: 'Arsitektur MVC modern, Eloquent ORM, migrasi skema database, otentikasi aman, dan pengembangan REST API terstruktur.'
-    },
-    {
-      name: 'PHP',
-      category: 'backend',
-      tag: 'Core Language',
-      role: 'Server-Side Programming',
-      desc: 'Pemrograman berorientasi objek (OOP), manajemen sesi, modularitas kode, dan eksekusi logika backend yang handal.'
-    },
-    {
-      name: 'Golang',
-      category: 'backend',
-      tag: 'High Concurrency',
-      role: 'Systems & Microservices',
-      desc: 'Bahasa terkompilasi dengan performa tinggi, goroutine concurrency, typing kuat, serta efisiensi beban kerja server.'
-    },
-    {
-      name: 'Postman',
-      category: 'backend',
-      tag: 'API Tooling',
-      role: 'Contract & Endpoint Testing',
-      desc: 'Perancangan spesifikasi endpoint REST, pengujian otomasi response JSON, debugging status code, dan dokumentasi API.'
-    },
-    {
-      name: 'PostgreSQL',
-      category: 'database',
-      tag: 'Primary RDBMS',
-      role: 'Enterprise Relational DB',
-      desc: 'Sistem manajemen database relasional tangguh, query kompleks, integritas data ACID, dan indexing skala besar.'
-    },
-    {
-      name: 'MySQL',
-      category: 'database',
-      tag: 'Relational DB',
-      role: 'Data Modeling & Queries',
-      desc: 'Perancangan skema relasional, normalisasi tabel, foreign key integrity, dan optimalisasi query berkecepatan tinggi.'
-    },
-    {
-      name: 'phpMyAdmin',
-      category: 'database',
-      tag: 'DB Administration',
-      role: 'Visual SQL Manager',
-      desc: 'Manajemen database grafis, inspeksi struktur tabel, eksekusi query manual, manipulasi baris, dan ekspor/impor skema.'
-    },
-    {
-      name: 'React.js',
-      category: 'frontend',
-      tag: 'Modern UI',
-      role: 'Frontend Library',
-      desc: 'Komponen modular, state management reaktif, custom hooks, dan arsitektur antarmuka Single Page Application (SPA).'
-    },
-    {
-      name: 'JavaScript',
-      category: 'frontend',
-      tag: 'Core Web',
-      role: 'Modern ESNext',
-      desc: 'Manipulasi DOM dinamis, asynchronous programming (Async/Await), event handling presisi, dan logika interaktif modern.'
-    },
-    {
-      name: 'Three.js / WebGL',
-      category: 'frontend',
-      tag: 'Porto Engine',
-      role: '3D Spatial Graphics',
-      desc: 'Grafis 3D interaktif pada browser, sistem koordinat spasial, material PBR, dan rendering procedural (fondasi portofolio ini).'
-    },
-    {
-      name: 'GSAP & ScrollTrigger',
-      category: 'frontend',
-      tag: 'Porto Engine',
-      role: 'Timeline Motion Engine',
-      desc: 'Orkestrasi animasi timeline 60 FPS, scrubbing scroll dinamis, pin section, dan interaksi fisik responsif.'
-    },
-    {
-      name: 'Framer Motion',
-      category: 'frontend',
-      tag: 'Porto Engine',
-      role: 'Declarative Transitions',
-      desc: 'Animasi transisi halaman mulus, fisika pegas (spring dynamics), gesture hover mikro, dan tata letak dinamis.'
-    },
-    {
-      name: 'Lenis',
-      category: 'frontend',
-      tag: 'Porto Engine',
-      role: 'Smooth Scroll Core',
-      desc: 'Inertial smooth scrolling berakurasi tinggi yang tersinkronisasi mulus dengan ScrollTrigger dan navigasi browser.'
-    },
-    {
-      name: 'Figma',
-      category: 'design',
-      tag: 'UI/UX Design',
-      role: 'Interface Architecture',
-      desc: 'Wireframing, perancangan sistem desain, auto-layout responsif, tipografi harmonis, dan prototyping antarmuka.'
-    },
-    {
-      name: 'Canva',
-      category: 'design',
-      tag: 'Visual Assets',
-      role: 'Creative Layout',
-      desc: 'Penyusunan tata letak visual cepat, aset grafis pendukung, branding presentasi, dan materi visual modern.'
-    },
-    {
-      name: 'Canva Affinity',
-      category: 'design',
-      tag: 'Vector Studio',
-      role: 'Affinity Designer & Graphics',
-      desc: 'Ilustrasi vektor presisi matematis, manipulasi grafis resolusi ultra tinggi, dan tipografi editorial berkelas.'
-    }
   ];
 
   const filteredTech = activeCategory === 'all'
@@ -303,8 +161,9 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) 
                   e.currentTarget.style.filter = 'grayscale(100%) contrast(108%) brightness(96%)';
                 }}
                 onError={(e) => {
-                  // Fallback jika profile.jpg belum termuat
-                  e.currentTarget.src = '/profile.jpg';
+                  if (e.currentTarget.src !== new URL('/profile.webp', window.location.origin).href) {
+                    e.currentTarget.src = '/profile.webp';
+                  }
                 }}
               />
 
@@ -328,79 +187,6 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) 
                 PROFIL / 2026
               </div>
 
-              {/* Tombol Praktis Penggantian Foto Pribadi */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '14px',
-                  left: '14px',
-                  right: '14px',
-                  display: 'flex',
-                  gap: '8px'
-                }}
-              >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={handlePhotoUpload}
-                />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  onMouseEnter={onHover}
-                  onMouseLeave={onLeave}
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    backgroundColor: 'rgba(5, 5, 5, 0.82)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.22)',
-                    color: '#ffffff',
-                    borderRadius: '8px',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '0.7rem',
-                    letterSpacing: '1px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = '#ffffff';
-                    e.currentTarget.style.color = '#000000';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(5, 5, 5, 0.82)';
-                    e.currentTarget.style.color = '#ffffff';
-                  }}
-                  title="Klik untuk memilih foto Anda langsung dari komputer"
-                >
-                  <span>📷</span>
-                  <span>GANTI FOTO SAYA</span>
-                </button>
-
-                {profileImage !== '/profile.jpg' && (
-                  <button
-                    onClick={handleResetPhoto}
-                    style={{
-                      padding: '8px 10px',
-                      backgroundColor: 'rgba(5, 5, 5, 0.82)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      color: 'rgba(255, 255, 255, 0.7)',
-                      borderRadius: '8px',
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '0.7rem',
-                      cursor: 'pointer'
-                    }}
-                    title="Kembalikan ke foto bawaan"
-                  >
-                    ↺
-                  </button>
-                )}
-              </div>
             </div>
 
             {/* Identitas Ringkas di Bawah Foto */}
@@ -494,73 +280,6 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) 
             >
               Bagi saya, perangkat lunak yang hebat tidak hanya memiliki logika yang solid dan aman, tetapi juga memberikan rasa interaksi yang memikat dan memuaskan bagi setiap pengguna yang menyentuhnya.
             </p>
-
-            {/* 3 KARTU METRIK MINIMALIS */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-                gap: '1rem',
-                marginBottom: '2.5rem'
-              }}
-            >
-              <div
-                style={{
-                  padding: '1.25rem',
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
-                  borderRadius: '12px'
-                }}
-              >
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'rgba(255, 255, 255, 0.45)', letterSpacing: '1px' }}>
-                  01 / BACKEND
-                </div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: '700', color: '#ffffff', marginTop: '6px' }}>
-                  Logika & Relasi
-                </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.55)', marginTop: '4px' }}>
-                  Laravel 13, PHP, Golang & SQL
-                </div>
-              </div>
-
-              <div
-                style={{
-                  padding: '1.25rem',
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
-                  borderRadius: '12px'
-                }}
-              >
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'rgba(255, 255, 255, 0.45)', letterSpacing: '1px' }}>
-                  02 / INTERAKSI
-                </div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: '700', color: '#ffffff', marginTop: '6px' }}>
-                  Visual Spasial
-                </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.55)', marginTop: '4px' }}>
-                  React, Three.js, GSAP & Motion
-                </div>
-              </div>
-
-              <div
-                style={{
-                  padding: '1.25rem',
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
-                  borderRadius: '12px'
-                }}
-              >
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'rgba(255, 255, 255, 0.45)', letterSpacing: '1px' }}>
-                  03 / DESAIN
-                </div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: '700', color: '#ffffff', marginTop: '6px' }}>
-                  Sistem & Vektor
-                </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.55)', marginTop: '4px' }}>
-                  Figma & Canva Affinity
-                </div>
-              </div>
-            </div>
 
             {/* AKSI TOMBOL CEPAT */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>

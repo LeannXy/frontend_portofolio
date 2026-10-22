@@ -3,73 +3,11 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { motion, AnimatePresence } from 'framer-motion';
 import HistoryEnding from './HistoryEnding';
+import { DEFAULT_HISTORY } from '../../lib/siteContent.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
 // Data 4 Milestone sesuai gambar referensi pengguna
-const TIMELINE_DATA = [
-  {
-    id: 0,
-    year: "2023 - 2024",
-    title: "Full Stack Developer",
-    company: "Meedia",
-    text: "Joined Meedia as a Full Stack Developer, building scalable apps with React, Node.js, and MongoDB.",
-    details: [
-      "Mengembangkan arsitektur aplikasi web reaktif berskala besar",
-      "Optimalisasi pipeline integrasi API RESTful & MongoDB query",
-      "Penerapan sistem komponen desain monokrom berkecepatan 60 FPS"
-    ],
-    techStack: ["React", "Node.js", "MongoDB", "Express", "TailwindCSS"],
-    ratio: 0.08, // Posisi pada kurva (0.0 - 1.0)
-    stemHeight: 64,
-  },
-  {
-    id: 1,
-    year: "2024 - 2025",
-    title: "DevOps & Cloud Engineer",
-    company: "Core Infrastructure",
-    text: "Led projects with AWS and Docker, improved CI/CD pipelines, and mentored junior developers.",
-    details: [
-      "Orkestrasi kontainerisasi multi-layanan menggunakan Docker & AWS ECS",
-      "Peningkatan kecepatan deployment pipeline CI/CD hingga 3.2x lebih cepat",
-      "Mentorship teknis bagi 6+ junior developer dalam standar clean code"
-    ],
-    techStack: ["AWS", "Docker", "CI/CD", "TypeScript", "Terraform"],
-    ratio: 0.38,
-    stemHeight: 64,
-  },
-  {
-    id: 2,
-    year: "2025 - 2026",
-    title: "Senior Developer",
-    company: "Platform Engineering",
-    text: "Promoted to Senior Developer, focusing on microservices, database design, and open-source work.",
-    details: [
-      "Transisi arsitektur monolit ke ekosistem microservices modular",
-      "Perancangan skema database terdistribusi dengan konkurensi tinggi",
-      "Kontribusi aktif pada ekosistem open-source dan UI framework modern"
-    ],
-    techStack: ["Microservices", "PostgreSQL", "Go", "Redis", "Kafka"],
-    ratio: 0.70,
-    stemHeight: 64,
-  },
-  {
-    id: 3,
-    year: "2026 - 2027",
-    title: "Team Lead & Creative Architect",
-    company: "Innovation Lab",
-    text: "Became Team Lead, managing agile projects, scaling systems, and driving developer tools.",
-    details: [
-      "Memimpin visi teknis dan arsitektur produk interaktif berbasis WebGL 3D",
-      "Manajemen sprint agile lintas disiplin desain interaksi dan rekayasa kode",
-      "Pengembangan developer tooling internal yang memangkas waktu iterasi UI"
-    ],
-    techStack: ["Team Leadership", "Three.js", "System Architecture", "GSAP", "Next.js"],
-    ratio: 0.92,
-    stemHeight: 64,
-  }
-];
-
 // SVG Path melengkung persis referensi:
 // Mulai dari kiri atas -> meluncur mendatar ke tengah -> melengkung keluar layar kanan (hairpin curve) -> berbelok kembali ke kiri bawah
 const SVG_PATH_D = `
@@ -86,7 +24,7 @@ const SVG_PATH_D = `
 const WORLD_WIDTH = 3800;
 const WORLD_HEIGHT = 2100;
 
-export default function HistoryJourney({ isMobile, onHover, onLeave }) {
+export default function HistoryJourney({ isMobile, onHover, onLeave, onContactActive, timelineData = DEFAULT_HISTORY }) {
   const containerRef = useRef(null);
   const pathRef = useRef(null);
   const worldRef = useRef(null);
@@ -98,12 +36,13 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
   const [passedMilestoneCount, setPassedMilestoneCount] = useState(0);
   const [selectedMilestone, setSelectedMilestone] = useState(null); // Modal detail bila diklik
   const travelerRef = useRef(null);
+  const contactActiveRef = useRef(false);
 
   // Hitung posisi absolut (x, y) setiap milestone di atas kurva
   const milestonePositions = useMemo(() => {
     if (!pathRef.current || pathLength === 0) return [];
 
-    return TIMELINE_DATA.map((item) => {
+    return timelineData.map((item) => {
       const distance = item.ratio * pathLength;
       const pt = pathRef.current.getPointAtLength(distance);
       return {
@@ -112,7 +51,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
         y: pt.y,
       };
     });
-  }, [pathLength]);
+  }, [pathLength, timelineData]);
 
   // Inisialisasi SVG Path Length
   useEffect(() => {
@@ -153,13 +92,18 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
         const next = Math.round(exp * 100) / 100;
         return current === next ? current : next;
       });
+      const isContactActive = p >= 0.94;
+      if (contactActiveRef.current !== isContactActive) {
+        contactActiveRef.current = isContactActive;
+        onContactActive?.(isContactActive);
+      }
 
-      const nextPassedCount = TIMELINE_DATA.filter((item) => pathRatio >= item.ratio - 0.04).length;
+      const nextPassedCount = timelineData.filter((item) => pathRatio >= item.ratio - 0.04).length;
       setPassedMilestoneCount((current) => current === nextPassedCount ? current : nextPassedCount);
 
-      let closest = TIMELINE_DATA[0];
+      let closest = timelineData[0];
       let minDiff = Infinity;
-      TIMELINE_DATA.forEach((item) => {
+      timelineData.forEach((item) => {
         const diff = Math.abs(pathRatio - item.ratio);
         if (diff < minDiff) {
           minDiff = diff;
@@ -180,6 +124,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
       });
 
       ScrollTrigger.create({
+        id: 'history-journey-pinned',
         trigger: container,
         start: 'top top',
         end: isMobile ? '+=360%' : '+=520%', // Jalur scroll ekstra panjang untuk akomodasi pembesaran lingkaran dramatis
@@ -196,7 +141,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
 
     ScrollTrigger.refresh();
     return () => ctx.revert();
-  }, [pathLength, isMobile]);
+  }, [pathLength, isMobile, onContactActive, timelineData]);
 
   // Fungsi navigasi langsung ke milestone tertentu saat tombol di HUD diklik
   const jumpToMilestone = (ratio) => {
@@ -302,7 +247,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
             WebkitBackdropFilter: 'blur(10px)'
           }}
         >
-          {TIMELINE_DATA.map((item) => {
+          {timelineData.map((item) => {
             const isCurrent = activeMilestoneId === item.id;
             return (
               <button
@@ -382,7 +327,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
               letterSpacing: '-0.01em'
             }}
           >
-            {TIMELINE_DATA[activeMilestoneId].year} — {TIMELINE_DATA[activeMilestoneId].title}
+            {timelineData.find((item) => item.id === activeMilestoneId)?.year} — {timelineData.find((item) => item.id === activeMilestoneId)?.title}
           </div>
         </div>
 
@@ -811,7 +756,6 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
         onHover={onHover}
         onLeave={onLeave}
       />
-
       {/* ========================================================================= */}
       {/* MODAL PENCAPAIAN DETAIL SAAT KARTU MILSTONE DIKLIK                      */}
       {/* ========================================================================= */}
