@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { DEFAULT_TECHNOLOGIES } from '../../lib/siteContent.js';
 
 export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, technologies = DEFAULT_TECHNOLOGIES, profileImage = '/profile.webp' }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [hoveredCard, setHoveredCard] = useState(null);
+  const shouldReduceMotion = useReducedMotion();
 
   // Kurasi Teknologi yang Dipelajari & Digunakan (Sesuai Permintaan)
   const techCategories = [
@@ -24,7 +25,8 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="about-page-shell"
       style={{
         position: 'fixed',
         inset: 0,
@@ -55,9 +57,10 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
         }}
       />
 
-      <div className="about-status-row" style={{ maxWidth: '1240px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <div className="about-status-row about-page-content" style={{ maxWidth: '1240px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* NAVIGASI MINIMALIS: KEMBALI KE BERANDA */}
         <div
+          className="about-topbar"
           style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -128,8 +131,16 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
           }}
         >
           {/* FRAME FOTO PERSONAL (EDITORIAL MONOCHROME PORTRAIT) */}
-          <div style={{ position: 'relative' }}>
+          <motion.div
+            className="about-portrait-column"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.7, delay: shouldReduceMotion ? 0 : 0.1 }}
+            whileHover={shouldReduceMotion ? undefined : { y: -5 }}
+            style={{ position: 'relative' }}
+          >
             <div
+              className="about-portrait-frame"
               style={{
                 position: 'relative',
                 width: '100%',
@@ -143,6 +154,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
             >
               {/* Foto Aktual */}
               <img
+                className="about-portrait-image"
                 src={profileImage}
                 alt="Billean Uji Prakasa"
                 style={{
@@ -170,6 +182,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
 
               {/* Overlay Label Estetik Minimalis */}
               <div
+                className="about-portrait-label"
                 style={{
                   position: 'absolute',
                   top: '14px',
@@ -191,7 +204,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
             </div>
 
             {/* Identitas Ringkas di Bawah Foto */}
-            <div style={{ marginTop: '1.25rem' }}>
+            <div className="about-portrait-caption" style={{ marginTop: '1.25rem' }}>
               <div
                 style={{
                   fontFamily: 'var(--font-display)',
@@ -225,11 +238,18 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                 PPLG • SMK / Developer Indonesia
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* BIO RINGKAS & NILAI FILOSOFI (MINIMALIS & TIDAK BERTELE-TELE) */}
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <motion.div
+            className="about-bio"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.7, delay: shouldReduceMotion ? 0 : 0.2 }}
+            style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+          >
             <div
+              className="about-eyebrow"
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: '0.75rem',
@@ -243,6 +263,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
             </div>
 
             <h1
+              className="about-title"
               style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: isMobile ? 'clamp(2rem, 8vw, 2.8rem)' : 'clamp(2.5rem, 4vw, 3.8rem)',
@@ -253,7 +274,8 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                 margin: '0 0 1.5rem 0'
               }}
             >
-              Arsitektur kode tangguh dengan visual interaktif yang bernyawa.
+              Membangun sistem yang kuat.
+              <span className="about-title-accent"> Merancang pengalaman yang terasa.</span>
             </h1>
 
             <p
@@ -282,8 +304,35 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
               Bagi saya, perangkat lunak yang hebat tidak hanya memiliki logika yang solid dan aman, tetapi juga memberikan rasa interaksi yang memikat dan memuaskan bagi setiap pengguna yang menyentuhnya.
             </p>
 
+            <div className="about-focus-list" aria-label="Fokus keahlian">
+              <motion.div
+                className="about-focus-item"
+                whileHover={shouldReduceMotion ? undefined : { y: -4 }}
+                transition={{ duration: 0.2 }}
+              >
+                <span>01</span>
+                <strong>Backend & data</strong>
+              </motion.div>
+              <motion.div
+                className="about-focus-item"
+                whileHover={shouldReduceMotion ? undefined : { y: -4 }}
+                transition={{ duration: 0.2 }}
+              >
+                <span>02</span>
+                <strong>Antarmuka web</strong>
+              </motion.div>
+              <motion.div
+                className="about-focus-item"
+                whileHover={shouldReduceMotion ? undefined : { y: -4 }}
+                transition={{ duration: 0.2 }}
+              >
+                <span>03</span>
+                <strong>Interaksi kreatif</strong>
+              </motion.div>
+            </div>
+
             {/* AKSI TOMBOL CEPAT */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+            <div className="about-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
               <a
                 href="mailto:billeanujiprakasa@gmail.com"
                 onMouseEnter={onHover}
@@ -348,13 +397,21 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                 <span>GITHUB REPO ↗</span>
               </a>
             </div>
-          </div>
+          </motion.div>
         </section>
 
         {/* SECTION 2: TEKNOLOGI YANG DIGUNAKAN & DIPELAJARI */}
-        <section style={{ marginBottom: '5rem' }}>
+        <motion.section
+          className="about-tech-section"
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.12 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.6 }}
+          style={{ marginBottom: '5rem' }}
+        >
           {/* Header Section Teknologi */}
           <div
+            className="about-tech-heading"
             style={{
               display: 'flex',
               flexDirection: isMobile ? 'column' : 'row',
@@ -407,6 +464,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                   onClick={() => setActiveCategory(cat.id)}
                   onMouseEnter={onHover}
                   onMouseLeave={onLeave}
+                  aria-pressed={activeCategory === cat.id}
                   style={{
                     padding: '7px 16px',
                     borderRadius: '20px',
@@ -444,11 +502,13 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                 return (
                   <motion.div
                     key={tech.name}
-                    layout
-                    initial={{ opacity: 0, scale: 0.96 }}
+                    layout={!shouldReduceMotion}
+                    initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.96 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.96 }}
-                    transition={{ duration: 0.25, delay: idx * 0.02 }}
+                    exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.96 }}
+                    transition={{ duration: shouldReduceMotion ? 0 : 0.25, delay: shouldReduceMotion ? 0 : idx * 0.02 }}
+                    whileHover={shouldReduceMotion ? undefined : { y: -4 }}
+                    whileTap={shouldReduceMotion ? undefined : { scale: 0.99 }}
                     onMouseEnter={() => {
                       onHover();
                       setHoveredCard(tech.name);
@@ -601,10 +661,11 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
               })}
             </AnimatePresence>
           </div>
-        </section>
+        </motion.section>
 
         {/* BOTTOM STATEMENT & FOOTER */}
         <div
+          className="about-footer"
           style={{
             padding: isMobile ? '2.5rem 1.5rem' : '3.5rem 3rem',
             backgroundColor: 'rgba(255, 255, 255, 0.02)',

@@ -349,7 +349,7 @@ export default function App() {
   const onLeave = () => !isTouchDevice && setIsUiHovered(false);
 
   // Render huruf individual untuk efek pegas dan terangkat per karakter saat hover
-  const renderInteractiveChars = (text) => {
+  const renderInteractiveChars = (text, lineIndex = 0) => {
     return text.split("").map((char, index) => (
       <span
         key={index}
@@ -357,7 +357,11 @@ export default function App() {
         onMouseEnter={onHover}
         onMouseLeave={onLeave}
         style={{
-          whiteSpace: char === " " ? "pre" : "normal"
+          whiteSpace: char === " " ? "pre" : "normal",
+          '--hero-enter-delay': `${lineIndex * 180 + index * 45}ms`,
+          '--hero-enter-x': (index + lineIndex) % 2 === 0 ? '-120vw' : '120vw',
+          '--hero-enter-y': index % 3 === 0 ? '-120vh' : '120vh',
+          '--hero-enter-rotate': (index + lineIndex) % 2 === 0 ? '-35deg' : '35deg'
         }}
       >
         {char}
@@ -366,7 +370,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ width: '100vw', backgroundColor: '#050505', color: 'white', position: 'relative', cursor: isTouchDevice ? 'auto' : 'none', overflowX: 'hidden' }}>
+    <div className={loadingComplete ? 'app-shell app-loaded' : 'app-shell'} style={{ width: '100vw', backgroundColor: '#050505', color: 'white', position: 'relative', cursor: isTouchDevice ? 'auto' : 'none', overflowX: 'hidden' }}>
       {/* Noise filter dan Vignette overlay ala Awwwards */}
       <div className="noise-overlay" />
       <div className="vignette-overlay" />
@@ -671,6 +675,7 @@ export default function App() {
             <div id="main-scroll-track" style={{ position: 'relative', zIndex: 10, pointerEvents: 'none' }}>
               {/* SECTION 1: HERO SECTION — PROJECT CARDS ORBIT BEHIND THE CENTERED NAME */}
               <section
+                className="home-hero-section"
                 style={{
                   height: '100vh',
                   display: 'flex',
@@ -691,7 +696,7 @@ export default function App() {
 
                 {/* Central Name & Interactive Per-Letter Physics */}
                 <div
-                  className="hero-content-wrapper"
+                  className="hero-content-wrapper home-hero-content"
                   onMouseEnter={onHover}
                   onMouseLeave={onLeave}
                   style={{
@@ -705,7 +710,7 @@ export default function App() {
                   }}
                 >
                   {/* Baris 1: Billean */}
-                  <div
+                  <div className="hero-name-line"
                     style={{
                       fontFamily: 'var(--font-display)',
                       fontSize: isMobile ? 'clamp(3rem, 13vw, 4.4rem)' : 'clamp(4.8rem, 8vw, 8.4rem)',
@@ -717,11 +722,11 @@ export default function App() {
                       textTransform: 'none'
                     }}
                   >
-                    {renderInteractiveChars("BILLEAN")}
+                    {renderInteractiveChars("BILLEAN", 0)}
                   </div>
 
                   {/* Baris 2: Uji Prakasa */}
-                  <div
+                  <div className="hero-name-line"
                     style={{
                       fontFamily: 'var(--font-display)',
                       fontSize: isMobile ? 'clamp(2.4rem, 10.5vw, 3.6rem)' : 'clamp(4.0rem, 6.8vw, 7.2rem)',
@@ -734,12 +739,12 @@ export default function App() {
                       marginTop: isMobile ? '4px' : '8px'
                     }}
                   >
-                    {renderInteractiveChars("UJI PRAKASA")}
+                    {renderInteractiveChars("UJI PRAKASA", 1)}
                   </div>
                 </div>
 
                 {/* Bottom Hero Cue: Indikator Scroll Minimalis & Rapi */}
-                <div
+                <div className="hero-scroll-cue"
                   style={{
                     position: 'absolute',
                     bottom: isMobile ? '3.5rem' : '3.8rem',
@@ -881,7 +886,7 @@ export default function App() {
               transform: isMobile ? 'none' : 'translateY(-50%)',
               left: isMobile ? '50%' : (activeProject.textSide === 'left' ? '6%' : 'auto'),
               right: isMobile ? 'auto' : (activeProject.textSide === 'right' ? '6%' : 'auto'),
-              width: isMobile ? '92vw' : '400px',
+              width: isMobile ? '92vw' : 'min(300px, 24vw)',
               maxWidth: 'calc(100vw - 24px)',
               padding: '28px',
               boxSizing: 'border-box',

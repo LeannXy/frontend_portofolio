@@ -112,15 +112,40 @@ function HelixCard({
       const targetZ = 8.5;
       const cameraDistance = Math.max(0.1, camera.position.z - targetZ);
       const visibleWidthAtCard = viewport.width * cameraDistance / camera.position.z;
+      const visibleHeightAtCard = viewport.height * cameraDistance / camera.position.z;
+      const panelWidth = Math.min(300, window.innerWidth * 0.24);
+      const imageWidth = isMobile
+        ? window.innerWidth * 0.82
+        : Math.min(
+          window.innerWidth * 0.74,
+          window.innerWidth * 0.94 - panelWidth - Math.max(24, window.innerWidth * 0.025)
+        );
       const targetScale = Math.min(
-        isMobile ? 1.15 : 1.45,
-        visibleWidthAtCard * (isMobile ? 0.82 : 0.42) / baseScale[0]
+        isMobile ? 1.15 : 1.9,
+        imageWidth * (visibleWidthAtCard / window.innerWidth) / baseScale[0],
+        visibleHeightAtCard * (isMobile ? 0.55 : 0.84) / baseScale[1]
       );
-      const sideOffset = visibleWidthAtCard * 0.25;
+      const sideOffset = isMobile
+        ? 0
+        : (window.innerWidth * 0.03
+          + panelWidth
+          + Math.max(24, window.innerWidth * 0.025)
+          + imageWidth / 2
+          - window.innerWidth / 2) * (visibleWidthAtCard / window.innerWidth);
       const targetX = isMobile ? 0 : (textSide === 'left' ? sideOffset : -sideOffset);
-      const targetY = isMobile
-        ? 3.4 - (masterGroupRef.current?.position.y ?? 0)
-        : -(masterGroupRef.current?.position.y ?? 0);
+      let targetY = -(masterGroupRef.current?.position.y ?? 0);
+      if (isMobile) {
+        const navbarBottom = document.querySelector('.site-nav')?.getBoundingClientRect().bottom ?? 88;
+        const panelTop = document.querySelector('.project-detail-panel')?.getBoundingClientRect().top
+          ?? window.innerHeight * 0.65;
+        const safeTop = navbarBottom + 16;
+        const safeBottom = panelTop - 16;
+        const imageHeight = baseScale[1] * targetScale * window.innerHeight / visibleHeightAtCard;
+        const availableHeight = Math.max(imageHeight, safeBottom - safeTop);
+        const imageCenterY = safeTop + availableHeight / 2;
+        targetY += (window.innerHeight / 2 - imageCenterY)
+          * visibleHeightAtCard / window.innerHeight;
+      }
       const basePosition = groupRef.current.position.clone();
 
       groupRef.current.position.set(
