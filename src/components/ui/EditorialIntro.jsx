@@ -33,7 +33,7 @@ const TEXT_DATA = {
     { text: "code," },
     { text: "made" },
     { text: "in" },
-    { text: "Manchester." },
+    { text: "Jepara." },
   ],
   billean: [
     { text: "I'm" },
@@ -63,7 +63,7 @@ const TEXT_DATA = {
     { text: "code," },
     { text: "made" },
     { text: "in" },
-    { text: "Indonesia." },
+    { text: "Jepara." },
   ]
 };
 

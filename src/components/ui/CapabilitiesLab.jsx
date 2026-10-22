@@ -454,7 +454,7 @@ export default function CapabilitiesLab({ onHoverCard, onHover, onLeave, isMobil
         {/* 3. BENTO GRID 4 PILAR DESAINER TINGKAT LANJUT */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
           gap: '24px'
         }}>
           {CAPABILITY_PILLARS.map((pillar) => (

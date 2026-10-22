@@ -390,7 +390,7 @@ export default function App() {
       )}
 
       {/* Header / Navigasi Bersih & Rapi Standar Awwwards */}
-      <nav style={{
+      <nav className="site-nav" style={{
         position: 'fixed',
         top: 0,
         left: 0,
@@ -405,6 +405,7 @@ export default function App() {
       }}>
         {/* Logo Bersih */}
         <div
+          className="site-nav-logo"
           onClick={() => navigateTo('home')}
           onMouseEnter={onHover}
           onMouseLeave={onLeave}
@@ -421,7 +422,7 @@ export default function App() {
         </div>
 
         {/* Menu Nav Links: Rapi & Minimalis */}
-        <div style={{
+        <div className="site-nav-links" style={{
           display: 'flex',
           gap: isMobile ? '1rem' : '2rem',
           fontFamily: 'var(--font-mono)',
@@ -545,7 +546,7 @@ export default function App() {
       )}
 
       {/* Social Links di Sudut Bawah */}
-      <div style={{
+      <div className="home-social-links" style={{
         position: 'fixed',
         bottom: isMobile ? '1.2rem' : '2rem',
         left: isMobile ? '1.5rem' : '4rem',
@@ -856,6 +857,7 @@ export default function App() {
       <AnimatePresence>
         {activeProject && currentView === 'home' && (
           <motion.div
+            className="project-detail-panel"
             initial={{
               opacity: 0,
               x: isMobile ? '-50%' : (activeProject.textSide === 'left' ? -40 : 40),

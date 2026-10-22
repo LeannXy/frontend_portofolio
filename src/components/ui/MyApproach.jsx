@@ -263,7 +263,7 @@ export default function MyApproach({ isMobile, onHover, onLeave }) {
           margin: '0 auto',
           display: 'grid',
           // Desktop: 4 kolom rapi berjejer | Tablet: 2 kolom | Mobile: 1 kolom
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
           borderTop: '1px solid rgba(255, 255, 255, 0.08)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           borderLeft: '1px solid rgba(255, 255, 255, 0.08)',

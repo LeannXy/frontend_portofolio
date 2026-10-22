@@ -314,7 +314,7 @@ export default function AdminDashboard({ onClose, onProjectsChanged, onSiteConte
       }}
     >
       <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
-        <header style={{
+        <header className="admin-header" style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',

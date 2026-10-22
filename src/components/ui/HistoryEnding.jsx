@@ -142,6 +142,7 @@ export default function HistoryEnding({
   return (
     <div
       id="section-contact"
+      className="contact-portal"
       ref={containerRef}
       onMouseMove={handleMouseMove}
       style={{
@@ -234,6 +235,7 @@ export default function HistoryEnding({
             rel="noopener noreferrer"
             onMouseEnter={onHover}
             onMouseLeave={onLeave}
+            aria-label={soc.name}
             className={`floating-social-badge ${soc.floatClass}`}
             style={{
               position: 'absolute',
@@ -387,6 +389,7 @@ export default function HistoryEnding({
       <AnimatePresence>
         {isFormOpen && (
           <motion.div
+            className="contact-form-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -409,6 +412,7 @@ export default function HistoryEnding({
             }}
           >
             <motion.div
+              className="contact-form-card"
               initial={{ scale: 0.92, y: 30 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.92, y: 30 }}

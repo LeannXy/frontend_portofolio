@@ -29,7 +29,7 @@ function HelixCard({
   const frontImageRef = useRef();
   const expansionProgressRef = useRef(0);
   const previousSelectionRef = useRef(false);
-  const { viewport } = useThree();
+  const { camera, viewport } = useThree();
   const baseScale = [8, 4.5];
 
   useFrame((state, delta) => {
@@ -109,12 +109,18 @@ function HelixCard({
     if (expansionProgress > 0) {
       const isMobile = window.innerWidth < 768;
       const textSide = proj.textSide === 'left' ? 'left' : 'right';
-      const sideOffset = Math.min(7.2, viewport.width * 0.28);
+      const targetZ = 8.5;
+      const cameraDistance = Math.max(0.1, camera.position.z - targetZ);
+      const visibleWidthAtCard = viewport.width * cameraDistance / camera.position.z;
+      const targetScale = Math.min(
+        isMobile ? 1.15 : 1.45,
+        visibleWidthAtCard * (isMobile ? 0.82 : 0.42) / baseScale[0]
+      );
+      const sideOffset = visibleWidthAtCard * 0.25;
       const targetX = isMobile ? 0 : (textSide === 'left' ? sideOffset : -sideOffset);
       const targetY = isMobile
         ? 3.4 - (masterGroupRef.current?.position.y ?? 0)
         : -(masterGroupRef.current?.position.y ?? 0);
-      const targetZ = 8.5;
       const basePosition = groupRef.current.position.clone();
 
       groupRef.current.position.set(
@@ -125,7 +131,7 @@ function HelixCard({
       groupRef.current.rotation.x = lerp(groupRef.current.rotation.x, 0, expansionProgress);
       groupRef.current.rotation.y = lerp(groupRef.current.rotation.y, 0, expansionProgress);
       groupRef.current.rotation.z = lerp(groupRef.current.rotation.z, 0, expansionProgress);
-      groupRef.current.scale.setScalar(lerp(groupRef.current.scale.x, isMobile ? 1.15 : 1.45, expansionProgress));
+      groupRef.current.scale.setScalar(lerp(groupRef.current.scale.x, targetScale, expansionProgress));
     }
 
     // Keep the last project visible until the gallery scroll is almost complete.

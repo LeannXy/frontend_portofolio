@@ -23,6 +23,60 @@ const SVG_PATH_D = `
 
 const WORLD_WIDTH = 3800;
 const WORLD_HEIGHT = 2100;
+const HISTORY_CARD_PROXIMITY = 140;
+
+function positionHistoryMilestoneCard(container, path, pathLength, timelineData, isMobile, progress, activeId) {
+  const activeMilestone = timelineData.find((item) => item.id === activeId);
+  if (!container || !path || !activeMilestone) return;
+
+  const activeCard = Array.from(container.querySelectorAll('[data-history-card]'))
+    .find((card) => card.dataset.historyCard === String(activeId));
+  if (!activeCard) return;
+
+  const pathRatio = Math.min(1, progress / 0.78);
+  const travelerPoint = path.getPointAtLength(pathRatio * pathLength);
+  const milestonePoint = path.getPointAtLength(activeMilestone.ratio * pathLength);
+  const sectionRect = container.getBoundingClientRect();
+  const headerRect = container.querySelector('.history-header-hud').getBoundingClientRect();
+  const hudRect = container.querySelector('.history-bottom-hud').getBoundingClientRect();
+  const screenNodeX = sectionRect.left + milestonePoint.x - travelerPoint.x + window.innerWidth / 2;
+  const screenNodeY = sectionRect.top + milestonePoint.y - travelerPoint.y + window.innerHeight / 2;
+  const safeTop = Math.max(sectionRect.top, headerRect.bottom + 12);
+  const safeBottom = Math.min(sectionRect.bottom, hudRect.top - 12);
+  const availableHeight = Math.max(1, safeBottom - safeTop - 16);
+  const availableWidth = Math.max(1, window.innerWidth - 32);
+  const cardScale = Math.min(
+    1,
+    availableHeight / activeCard.offsetHeight,
+    availableWidth / activeCard.offsetWidth
+  );
+  activeCard.style.setProperty('--history-card-scale', String(cardScale));
+  const cardRect = activeCard.getBoundingClientRect();
+  const horizontalMargin = 16;
+  const cardGap = isMobile ? 24 : 36;
+  const rightPosition = screenNodeX + cardGap;
+  const leftPosition = screenNodeX - cardRect.width - cardGap;
+  const rightFits = rightPosition >= horizontalMargin
+    && rightPosition + cardRect.width <= window.innerWidth - horizontalMargin;
+  const leftFits = leftPosition >= horizontalMargin
+    && leftPosition + cardRect.width <= window.innerWidth - horizontalMargin;
+  const screenLeft = rightFits
+    ? rightPosition
+    : leftFits
+      ? leftPosition
+      : Math.max(horizontalMargin, (window.innerWidth - cardRect.width) / 2);
+
+  const minCenterY = safeTop + cardRect.height / 2;
+  const maxCenterY = safeBottom - cardRect.height / 2;
+  const screenCenterY = maxCenterY < minCenterY
+    ? (safeTop + safeBottom) / 2
+    : Math.min(maxCenterY, Math.max(minCenterY, screenNodeY));
+
+  activeCard.style.left = `${screenLeft - screenNodeX}px`;
+  const positionedLeft = activeCard.getBoundingClientRect().left;
+  activeCard.style.left = `${parseFloat(activeCard.style.left) + screenLeft - positionedLeft}px`;
+  activeCard.style.top = `${screenCenterY - screenNodeY}px`;
+}
 
 export default function HistoryJourney({ isMobile, onHover, onLeave, onContactActive, timelineData = DEFAULT_HISTORY }) {
   const containerRef = useRef(null);
@@ -37,6 +91,19 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
   const [selectedMilestone, setSelectedMilestone] = useState(null); // Modal detail bila diklik
   const travelerRef = useRef(null);
   const contactActiveRef = useRef(false);
+  useEffect(() => {
+    const container = document.getElementById('section-history');
+    const path = container?.querySelector('[data-history-active-path]');
+    positionHistoryMilestoneCard(
+      container,
+      path,
+      pathLength,
+      timelineData,
+      isMobile,
+      scrollProgress,
+      activeMilestoneId
+    );
+  }, [activeMilestoneId, passedMilestoneCount, isMobile, pathLength, scrollProgress, timelineData]);
 
   // Hitung posisi absolut (x, y) setiap milestone di atas kurva
   const milestonePositions = useMemo(() => {
@@ -111,6 +178,16 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
         }
       });
       setActiveMilestoneId((current) => current === closest.id ? current : closest.id);
+
+      positionHistoryMilestoneCard(
+        container,
+        path,
+        pathLength,
+        timelineData,
+        isMobile,
+        p,
+        closest.id
+      );
     };
 
     const ctx = gsap.context(() => {
@@ -158,6 +235,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
   return (
     <section
       id="section-history"
+      className="history-journey"
       ref={containerRef}
       style={{
         position: 'relative',
@@ -175,6 +253,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
 
       {/* Noise Texture & Vignette Overlay */}
       <div
+        className="history-vignette"
         style={{
           position: 'absolute',
           top: 0,
@@ -191,9 +270,10 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
 
       {/* TOP HEADER HUD */}
       <div
+        className="history-header-hud"
         style={{
           position: 'absolute',
-          top: isMobile ? '5.25rem' : '6.25rem',
+          top: isMobile ? '7rem' : '6.25rem',
           left: isMobile ? '1.5rem' : '4rem',
           right: isMobile ? '1.5rem' : '4rem',
           display: 'flex',
@@ -209,6 +289,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
       >
         <div>
           <div
+            className="history-header-caption"
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: isMobile ? '0.68rem' : '0.8rem',
@@ -281,6 +362,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
 
       {/* BOTTOM STATUS HUD */}
       <div
+        className="history-bottom-hud"
         style={{
           position: 'absolute',
           bottom: isMobile ? '1.5rem' : '2.5rem',
@@ -297,6 +379,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
       >
         {/* Active Chapter Indicator */}
         <div
+          className="history-active-phase"
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -335,6 +418,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
 
         {/* Progress Bar & Percentage */}
         <div
+          className="history-progress"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -459,6 +543,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
           {/* 2. Active Illuminated Path (Garis putih menyala yang terlukis seiring scroll) */}
           <path
             ref={pathRef}
+            data-history-active-path
             d={SVG_PATH_D}
             fill="none"
             stroke="#ffffff"
@@ -471,8 +556,11 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
 
         {/* 3. MILESTONE NODES, STEM LINES & CARDS */}
         {milestonePositions.map((item) => {
-          const isPassedOrActive = item.id < passedMilestoneCount;
           const isFocal = activeMilestoneId === item.id;
+          const pathRatio = Math.min(1, scrollProgress / 0.78);
+          const distanceToMilestone = Math.abs(pathRatio - item.ratio) * pathLength;
+          const isCardVisible = isFocal && distanceToMilestone <= HISTORY_CARD_PROXIMITY;
+          const isPassedOrActive = item.id < passedMilestoneCount || isCardVisible;
 
           return (
             <div
@@ -542,28 +630,31 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
 
               {/* Keep only the current milestone card open beside the traveler. */}
               <div
+                className="history-milestone-card"
+                data-history-card={item.id}
+                aria-label={`${item.year} ${item.title} milestone details`}
                 style={{
                   position: 'absolute',
                   top: '50%',
                   left: isMobile ? '28px' : '36px',
-                  width: isMobile ? 'min(300px, calc(100vw - 76px))' : '360px',
-                  maxWidth: 'calc(100vw - 76px)',
-                  maxHeight: 'calc(100vh - 190px)',
-                  overflowY: 'auto',
+                  width: isMobile ? 'min(320px, calc(100vw - 32px))' : '360px',
+                  maxWidth: 'calc(100vw - 32px)',
+                  overflow: 'visible',
                   boxSizing: 'border-box',
                   padding: isMobile ? '14px' : '18px',
                   background: 'rgba(5, 5, 5, 0.94)',
                   border: '1px solid rgba(255, 255, 255, 0.18)',
+                  borderRadius: '12px',
                   boxShadow: '0 18px 50px rgba(0, 0, 0, 0.55)',
                   transformOrigin: 'left center',
-                  opacity: isFocal && isPassedOrActive ? 1 : 0,
-                  visibility: isFocal && isPassedOrActive ? 'visible' : 'hidden',
-                  pointerEvents: isFocal && isPassedOrActive ? 'auto' : 'none',
-                  transform: isFocal && isPassedOrActive
-                    ? 'translateY(-50%) scale(1)'
-                    : 'translateY(-50%) scale(0.97)',
+                  opacity: isCardVisible ? 1 : 0,
+                  visibility: isCardVisible ? 'visible' : 'hidden',
+                  pointerEvents: isCardVisible ? 'auto' : 'none',
+                  transform: isCardVisible
+                    ? 'translateY(-50%) scale(var(--history-card-scale, 1))'
+                    : 'translateY(-50%) scale(calc(var(--history-card-scale, 1) * 0.97))',
                   transition: 'opacity 0.3s ease, transform 0.3s ease',
-                  zIndex: 30
+                  zIndex: 40
                 }}
               >
                 {/* Tahun Tebal (Misal: 2023 - 2024) */}
@@ -602,6 +693,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
                 <AnimatePresence>
                   {isPassedOrActive && (
                     <motion.div
+                      className="history-milestone-details"
                       initial={{ opacity: 0, y: 15, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -610,7 +702,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
                         padding: '14px 18px',
                         backgroundColor: isFocal ? 'rgba(20, 20, 25, 0.85)' : 'rgba(15, 15, 18, 0.65)',
                         border: isFocal ? '1px solid #ffffff' : '1px solid rgba(255, 255, 255, 0.15)',
-                        borderRadius: '14px',
+                        borderRadius: '12px',
                         backdropFilter: 'blur(16px)',
                         WebkitBackdropFilter: 'blur(16px)',
                         boxShadow: isFocal
@@ -622,7 +714,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
                       }}
                     >
                       {/* Sub-label & Status Badge */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div className="history-milestone-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                         <span
                           style={{
                             fontFamily: 'var(--font-mono)',

@@ -55,7 +55,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
         }}
       />
 
-      <div style={{ maxWidth: '1240px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <div className="about-status-row" style={{ maxWidth: '1240px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* NAVIGASI MINIMALIS: KEMBALI KE BERANDA */}
         <div
           style={{
@@ -118,6 +118,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
 
         {/* HERO SECTION ABOUT: FOTO EDITORIAL & BIOGRAFI RINGKAS MINIMALIS */}
         <section
+          className="about-hero-layout"
           style={{
             display: 'grid',
             gridTemplateColumns: isMobile ? '1fr' : '380px 1fr',
