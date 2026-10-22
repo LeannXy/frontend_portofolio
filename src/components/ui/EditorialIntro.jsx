@@ -157,13 +157,14 @@ export default function EditorialIntro({ isMobile, onHover, onLeave }) {
         zIndex: 45,
         backgroundColor: '#050505',
         width: '100%',
-        height: '100vh',
+        height: 'auto',
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         alignItems: 'flex-start',
-        padding: isMobile ? '2rem 1.5rem' : '4rem 8vw',
+        gap: isMobile ? '1.5rem' : '2rem',
+        padding: isMobile ? '5.5rem 1.5rem 2rem' : '6.5rem 8vw 3rem',
         boxSizing: 'border-box',
         overflow: 'hidden'
       }}
@@ -214,34 +215,54 @@ export default function EditorialIntro({ isMobile, onHover, onLeave }) {
         }}
       />
 
-      {/* TOP META BAR: Section Label & Quick Reference Switcher */}
+      {/* TOP META BAR: in normal flow so it cannot overlap the statement text */}
       <div
         style={{
           position: 'relative',
           zIndex: 10,
           width: '100%',
           maxWidth: '1300px',
+          margin: '0 auto',
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: isMobile ? '2rem' : '3.5rem'
+          alignItems: isMobile ? 'flex-start' : 'center',
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: isMobile ? '12px' : '24px',
+          flexShrink: 0
         }}
       >
-        {/* Label Monospace */}
         <div
           style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: isMobile ? '0.68rem' : '0.8rem',
-            letterSpacing: '3px',
-            textTransform: 'uppercase',
-            color: 'rgba(255, 255, 255, 0.4)',
             display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
+            flexDirection: 'column',
+            gap: '4px'
           }}
         >
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#ffffff' }} />
-          [ 04 / STATEMENT & PHILOSOPHY ]
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: isMobile ? '0.68rem' : '0.8rem',
+              letterSpacing: '3px',
+              textTransform: 'uppercase',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}
+          >
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ffffff', boxShadow: '0 0 10px #ffffff' }} />
+            [ 04 / STATEMENT & PHILOSOPHY ]
+          </div>
+          <div
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: isMobile ? '0.75rem' : '0.85rem',
+              color: 'rgba(255, 255, 255, 0.45)',
+              marginTop: '4px'
+            }}
+          >
+            Personal statement • Design and development philosophy
+          </div>
         </div>
 
         {/* Quick Toggle: Leann (Gambar Referensi) vs Billean (Portofolio Anda) */}
@@ -252,7 +273,7 @@ export default function EditorialIntro({ isMobile, onHover, onLeave }) {
             gap: '6px',
             background: 'rgba(255, 255, 255, 0.05)',
             padding: '4px 6px',
-            borderRadius: '24px',
+            borderRadius: '0',
             border: '1px solid rgba(255, 255, 255, 0.12)'
           }}
         >
@@ -308,12 +329,14 @@ export default function EditorialIntro({ isMobile, onHover, onLeave }) {
           zIndex: 10,
           maxWidth: '1280px',
           width: '100%',
+          margin: '0 auto',
           fontFamily: 'var(--font-display)',
-          fontSize: isMobile ? 'clamp(1.9rem, 7.8vw, 2.7rem)' : 'clamp(2.8rem, 4.8vw, 4.9rem)',
+          fontSize: isMobile ? 'clamp(1.6rem, 7.2vw, 2.5rem)' : 'clamp(2.8rem, 4.8vw, 4.9rem)',
           fontWeight: '700',
-          lineHeight: isMobile ? '1.24' : '1.18',
+          lineHeight: isMobile ? '1.16' : '1.18',
           letterSpacing: '-0.03em',
-          userSelect: 'none'
+          userSelect: 'none',
+          flex: '0 1 auto'
         }}
       >
         {currentWords.map((item, idx) => (
@@ -345,14 +368,17 @@ export default function EditorialIntro({ isMobile, onHover, onLeave }) {
         style={{
           position: 'relative',
           zIndex: 10,
-          marginTop: isMobile ? '2.5rem' : '4rem',
+          marginTop: 0,
           width: '100%',
           maxWidth: '1280px',
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: isMobile ? '12px' : '24px',
           borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          paddingTop: '1.2rem'
+          paddingTop: '1.2rem',
+          flexShrink: 0
         }}
       >
         <div

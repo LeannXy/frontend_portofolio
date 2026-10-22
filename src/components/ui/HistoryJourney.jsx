@@ -193,12 +193,14 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
       <div
         style={{
           position: 'absolute',
-          top: isMobile ? '1.5rem' : '2.5rem',
+          top: isMobile ? '5.25rem' : '6.25rem',
           left: isMobile ? '1.5rem' : '4rem',
           right: isMobile ? '1.5rem' : '4rem',
           display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
           justifyContent: 'space-between',
-          alignItems: 'center',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          gap: isMobile ? '12px' : '24px',
           zIndex: 50,
           pointerEvents: expansionProgress > 0.25 ? 'none' : 'auto',
           opacity: Math.max(0, 1 - expansionProgress * 2.8),
@@ -538,21 +540,30 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
                 }}
               />
 
-              {/* KONTEN MILESTONE (Teks Tahun & Deskripsi Sesuai Gambar Referensi) */}
+              {/* Keep only the current milestone card open beside the traveler. */}
               <div
                 style={{
                   position: 'absolute',
-                  bottom: `${item.stemHeight + 16}px`,
-                  left: '-16px',
-                  width: '380px',
-                  maxWidth: '85vw',
-                  transformOrigin: 'bottom left',
-                  opacity: isPassedOrActive ? 1 : 0.25,
-                  transform: isPassedOrActive
-                    ? (isFocal ? 'translateY(0) scale(1.03)' : 'translateY(0) scale(1)')
-                    : 'translateY(12px) scale(0.96)',
-                  transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-                  zIndex: isFocal ? 30 : 22
+                  top: '50%',
+                  left: isMobile ? '28px' : '36px',
+                  width: isMobile ? 'min(300px, calc(100vw - 76px))' : '360px',
+                  maxWidth: 'calc(100vw - 76px)',
+                  maxHeight: 'calc(100vh - 190px)',
+                  overflowY: 'auto',
+                  boxSizing: 'border-box',
+                  padding: isMobile ? '14px' : '18px',
+                  background: 'rgba(5, 5, 5, 0.94)',
+                  border: '1px solid rgba(255, 255, 255, 0.18)',
+                  boxShadow: '0 18px 50px rgba(0, 0, 0, 0.55)',
+                  transformOrigin: 'left center',
+                  opacity: isFocal && isPassedOrActive ? 1 : 0,
+                  visibility: isFocal && isPassedOrActive ? 'visible' : 'hidden',
+                  pointerEvents: isFocal && isPassedOrActive ? 'auto' : 'none',
+                  transform: isFocal && isPassedOrActive
+                    ? 'translateY(-50%) scale(1)'
+                    : 'translateY(-50%) scale(0.97)',
+                  transition: 'opacity 0.3s ease, transform 0.3s ease',
+                  zIndex: 30
                 }}
               >
                 {/* Tahun Tebal (Misal: 2023 - 2024) */}

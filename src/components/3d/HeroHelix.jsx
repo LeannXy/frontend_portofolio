@@ -22,10 +22,14 @@ function HelixCard({
   setClickedProject,
   galleryProgressRef,
   galleryExitProgressRef,
-  idleAngleRef
+  idleAngleRef,
+  masterGroupRef
 }) {
   const groupRef = useRef();
   const frontImageRef = useRef();
+  const expansionProgressRef = useRef(0);
+  const previousSelectionRef = useRef(false);
+  const { viewport } = useThree();
   const baseScale = [8, 4.5];
 
   useFrame((state, delta) => {
@@ -80,6 +84,49 @@ function HelixCard({
     // 4. Efek fokus interaktif saat kartu di-hover / di-klik
     const isFocused = activeProject && activeProject.id === proj.id;
     const hasActive = activeProject !== null;
+    const isSelected = clickedProject?.id === proj.id;
+    if (previousSelectionRef.current !== isSelected) {
+      groupRef.current.traverse((child) => {
+        if (!child.isMesh) return;
+        child.renderOrder = isSelected ? 1000 : 0;
+        const materials = Array.isArray(child.material) ? child.material : [child.material];
+        materials.forEach((material) => {
+          if (material) material.depthTest = !isSelected;
+        });
+      });
+      previousSelectionRef.current = isSelected;
+    }
+
+    const isExpanded = clickedProject?.id === proj.id && galleryProgress >= 0.12;
+    const expansionProgress = THREE.MathUtils.damp(
+      expansionProgressRef.current,
+      isExpanded ? 1 : 0,
+      5,
+      delta
+    );
+    expansionProgressRef.current = expansionProgress;
+
+    if (expansionProgress > 0) {
+      const isMobile = window.innerWidth < 768;
+      const textSide = proj.textSide === 'left' ? 'left' : 'right';
+      const sideOffset = Math.min(7.2, viewport.width * 0.28);
+      const targetX = isMobile ? 0 : (textSide === 'left' ? sideOffset : -sideOffset);
+      const targetY = isMobile
+        ? 3.4 - (masterGroupRef.current?.position.y ?? 0)
+        : -(masterGroupRef.current?.position.y ?? 0);
+      const targetZ = 8.5;
+      const basePosition = groupRef.current.position.clone();
+
+      groupRef.current.position.set(
+        lerp(basePosition.x, targetX, expansionProgress),
+        lerp(basePosition.y, targetY, expansionProgress),
+        lerp(basePosition.z, targetZ, expansionProgress)
+      );
+      groupRef.current.rotation.x = lerp(groupRef.current.rotation.x, 0, expansionProgress);
+      groupRef.current.rotation.y = lerp(groupRef.current.rotation.y, 0, expansionProgress);
+      groupRef.current.rotation.z = lerp(groupRef.current.rotation.z, 0, expansionProgress);
+      groupRef.current.scale.setScalar(lerp(groupRef.current.scale.x, isMobile ? 1.15 : 1.45, expansionProgress));
+    }
 
     // Keep the last project visible until the gallery scroll is almost complete.
     const exitProgress = galleryExitProgressRef.current;
@@ -105,12 +152,6 @@ function HelixCard({
 
   return (
     <group ref={groupRef}>
-      {/* Backing keeps neighboring card faces from showing through. */}
-      <mesh position={[0, 0, 0]}>
-        <planeGeometry args={[8.1, 5.05]} />
-        <meshBasicMaterial color="#080808" />
-      </mesh>
-
       {/* 2. SISI DEPAN (FRONT FACE - Z > 0) */}
       <group position={[0, 0, 0.015]}>
         {/* Gambar Proyek Depan (Cerah & Tajam) */}
@@ -222,12 +263,24 @@ export default function HeroHelix({
       ScrollTrigger.create({
         trigger: "#section-approach",
         start: "top bottom",
-        end: "top 60%",
+        end: "bottom top",
+        onEnter: () => {
+          if (masterGroupRef.current) masterGroupRef.current.visible = false;
+        },
+        onEnterBack: () => {
+          if (masterGroupRef.current) masterGroupRef.current.visible = false;
+        },
+        onLeaveBack: () => {
+          if (masterGroupRef.current) masterGroupRef.current.visible = true;
+        },
         onUpdate: (self) => {
           galleryExitProgressRef.current = self.progress;
         },
         onRefresh: (self) => {
           galleryExitProgressRef.current = self.progress;
+          if (masterGroupRef.current) {
+            masterGroupRef.current.visible = window.scrollY < self.start;
+          }
         },
       });
     });
@@ -270,6 +323,7 @@ export default function HeroHelix({
           galleryProgressRef={galleryProgressRef}
           galleryExitProgressRef={galleryExitProgressRef}
           idleAngleRef={idleAngleRef}
+          masterGroupRef={masterGroupRef}
         />
       ))}
     </group>
