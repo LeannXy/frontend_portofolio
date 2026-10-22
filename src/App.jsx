@@ -1,12 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import Lenis from '@studio-freight/lenis';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Preloader from './components/ui/Preloader';
-import HeroHelix from './components/3d/HeroHelix';
-import CosmicStarfield from './components/3d/CosmicStarfield';
 import MyApproach from './components/ui/MyApproach';
 import EditorialIntro from './components/ui/EditorialIntro';
 import HistoryJourney from './components/ui/HistoryJourney';
@@ -14,6 +11,8 @@ import AboutPage from './components/ui/AboutPage';
 import './App.css';
 
 gsap.registerPlugin(ScrollTrigger);
+
+const HomeScene = lazy(() => import('./components/3d/HomeScene'));
 
 // Kurasi data proyek dengan estetika standar Awwwards
 const CURATED_PROJECTS = [
@@ -153,6 +152,7 @@ export default function App() {
 
   const [isMobile, setIsMobile] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [isMainTrackVisible, setIsMainTrackVisible] = useState(true);
 
   const [socials, setSocials] = useState({
     github: "GITHUB",
@@ -190,6 +190,21 @@ export default function App() {
   useEffect(() => {
     if (currentView !== 'home') return;
 
+    const mainTrack = document.getElementById('main-scroll-track');
+    if (!mainTrack) return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsMainTrackVisible(entry.isIntersecting);
+    });
+    observer.observe(mainTrack);
+
+    return () => observer.disconnect();
+  }, [currentView]);
+
+  // Inisialisasi Lenis Smooth Scroll dan GSAP ScrollTrigger (Hanya aktif di Home)
+  useEffect(() => {
+    if (currentView !== 'home') return;
+
     const lenis = new Lenis({
       duration: 1.25,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -198,11 +213,12 @@ export default function App() {
 
     lenis.on('scroll', ScrollTrigger.update);
 
+    let reqId;
     function raf(time) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      reqId = requestAnimationFrame(raf);
     }
-    const reqId = requestAnimationFrame(raf);
+    reqId = requestAnimationFrame(raf);
 
     let mm = gsap.matchMedia();
     const heroScrollConfig = {
@@ -554,20 +570,17 @@ export default function App() {
           <div key="home-view">
             {/* 3D Canvas: Bintang Kosmik di Latar Belakang, Orbit Melingkar di Hero & Pegas 3D di Section 2 */}
             <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1 }}>
-              <Canvas onPointerMissed={() => setClickedProject(null)}>
-                <ambientLight intensity={1.8} />
-                <CosmicStarfield isLoaded={loadingComplete} />
-                {projects.length > 0 && (
-                  <HeroHelix
-                    projects={projects}
-                    isLoaded={loadingComplete}
-                    activeProject={activeProject}
-                    setHoveredProject={setHoveredProject}
-                    clickedProject={clickedProject}
-                    setClickedProject={setClickedProject}
-                  />
-                )}
-              </Canvas>
+              <Suspense fallback={null}>
+                <HomeScene
+                  projects={projects}
+                  loadingComplete={loadingComplete}
+                  activeProject={activeProject}
+                  clickedProject={clickedProject}
+                  setHoveredProject={setHoveredProject}
+                  setClickedProject={setClickedProject}
+                  isMainTrackVisible={isMainTrackVisible}
+                />
+              </Suspense>
             </div>
 
             {/* Background Kinetic Typography (Atmosfer Tipografi Editorial yang Lembut) */}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -73,22 +73,49 @@ export default function EditorialIntro({ isMobile, onHover, onLeave }) {
 
   const sectionRef = useRef(null);
   const wordsRef = useRef([]);
+  const timelineRef = useRef(null);
 
   const currentWords = TEXT_DATA[profileKey];
 
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
+  const updateTimeline = () => {
+    const timeline = timelineRef.current;
+    if (!timeline) return;
 
-    // Bersihkan array kata yang valid
     const words = wordsRef.current.filter(Boolean);
     if (words.length === 0) return;
 
-    // Reset warna awal ke keadaan gelap
+    const progress = timeline.progress();
     gsap.set(words, {
       color: 'rgba(255, 255, 255, 0.16)',
       opacity: 0.35
     });
+    timeline.clear();
+
+    const revealDuration = 11.5;
+    const wordDuration = revealDuration / words.length;
+    words.forEach((wordEl, index) => {
+      timeline.to(
+        wordEl,
+        {
+          color: '#ffffff',
+          opacity: 1,
+          duration: wordDuration,
+          ease: 'power1.inOut'
+        },
+        index * wordDuration
+      );
+    });
+    timeline.to({}, { duration: 1.2 }, revealDuration);
+    timeline.progress(progress);
+  };
+
+  useLayoutEffect(() => {
+    updateTimeline();
+  }, [profileKey]);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
 
     const ctx = gsap.context(() => {
       // PIN THE SECTION: Section tetap diam/terkunci di layar saat di-scroll
@@ -103,34 +130,23 @@ export default function EditorialIntro({ isMobile, onHover, onLeave }) {
           scrub: 0.8, // Halus dan sinkron 1:1 dengan scroll
           anticipatePin: 1,
           onUpdate: (self) => {
-            setScrollProgress(Math.round(self.progress * 100));
+            const next = Math.round(self.progress * 100);
+            setScrollProgress((current) => current === next ? current : next);
           }
         }
       });
-
-      // Animasi kata satu per satu berubah dari gelap menjadi putih terang seiring scroll
-      words.forEach((wordEl, index) => {
-        tl.to(
-          wordEl,
-          {
-            color: '#ffffff',
-            opacity: 1,
-            duration: 1,
-            ease: 'power1.inOut'
-          },
-          index * 0.42 // Stagger waktu berurutan antar kata
-        );
-      });
-
-      // Buffer jeda saat semua kata telah menyala putih sempurna sebelum unpin
-      tl.to({}, { duration: 1.2 });
+      timelineRef.current = tl;
+      updateTimeline();
     }, section);
 
     // Refresh ScrollTrigger agar kalkulasi posisi presisi
     ScrollTrigger.refresh();
 
-    return () => ctx.revert();
-  }, [profileKey, isMobile]);
+    return () => {
+      ctx.revert();
+      timelineRef.current = null;
+    };
+  }, [isMobile]);
 
   return (
     <section

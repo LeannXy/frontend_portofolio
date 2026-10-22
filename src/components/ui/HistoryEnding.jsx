@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 
 // Data 4 Akun Media Sosial dengan Logo Vektor Resmi
 const SOCIAL_FLOATING_LOGOS = [
@@ -67,9 +67,13 @@ export default function HistoryEnding({
   onLeave
 }) {
   const containerRef = useRef(null);
+  const glowRef = useRef(null);
+  const connectRef = useRef(null);
+  const headingRef = useRef(null);
+  const tooltipX = useMotionValue(18);
+  const tooltipY = useMotionValue(18);
 
   // Posisi kursor mouse untuk efek hidup 3D pada teks & tooltip
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHoveringConnect, setIsHoveringConnect] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -86,12 +90,25 @@ export default function HistoryEnding({
   const handleMouseMove = (e) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    setMousePos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-      clientX: e.clientX,
-      clientY: e.clientY
-    });
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const deltaX = (x - rect.width / 2) / (rect.width / 2);
+    const deltaY = (y - rect.height / 2) / (rect.height / 2);
+
+    if (glowRef.current) {
+      glowRef.current.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
+    }
+    if (connectRef.current) {
+      connectRef.current.style.transform = `perspective(1000px) rotateX(${-deltaY * 18}deg) rotateY(${deltaX * 22}deg) translateZ(10px)`;
+    }
+    if (headingRef.current) {
+      headingRef.current.style.textShadow = `
+        ${-deltaX * 28}px ${-deltaY * 28}px 60px rgba(255, 255, 255, 0.45),
+        0 0 100px rgba(255, 255, 255, 0.25)
+      `;
+    }
+    tooltipX.set(x + 18);
+    tooltipY.set(y + 18);
   };
 
   // Close form with ESC key
@@ -119,12 +136,6 @@ export default function HistoryEnding({
       }, 2000);
     }, 1000);
   };
-
-  // Hitung sudut rotasi 3D agar LET'S CONNECT seakan-akan hidup menghadap kursor
-  const winW = typeof window !== 'undefined' ? window.innerWidth : 1200;
-  const winH = typeof window !== 'undefined' ? window.innerHeight : 800;
-  const deltaX = (mousePos.x - winW / 2) / (winW / 2); // -1.0 s/d 1.0
-  const deltaY = (mousePos.y - winH / 2) / (winH / 2); // -1.0 s/d 1.0
 
   if (!isVisible) return null;
 
@@ -193,10 +204,11 @@ export default function HistoryEnding({
 
       {/* Pendaran Cahaya Dinamis Mengikuti Kursor */}
       <div
+        ref={glowRef}
         style={{
           position: 'absolute',
-          top: mousePos.y,
-          left: mousePos.x,
+          top: 0,
+          left: 0,
           width: '500px',
           height: '500px',
           borderRadius: '50%',
@@ -274,6 +286,7 @@ export default function HistoryEnding({
           onLeave();
         }}
         onClick={() => setIsFormOpen(true)}
+        ref={connectRef}
         style={{
           position: 'relative',
           zIndex: 20,
@@ -283,13 +296,14 @@ export default function HistoryEnding({
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
+          willChange: 'transform',
           transformStyle: 'preserve-3d',
-          // Transform 3D Perspektif mengikuti kursor sehingga tulisan miring dinamis
-          transform: `perspective(1000px) rotateX(${-deltaY * 18}deg) rotateY(${deltaX * 22}deg) translateZ(10px)`,
+          transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(10px)',
           transition: 'transform 0.15s ease-out'
         }}
       >
         <h1
+          ref={headingRef}
           style={{
             fontFamily: 'var(--font-display)',
             fontSize: isMobile ? 'clamp(3.8rem, 15vw, 6rem)' : 'clamp(6rem, 13vw, 12.5rem)',
@@ -300,11 +314,7 @@ export default function HistoryEnding({
             color: '#ffffff',
             textAlign: 'center',
             textTransform: 'uppercase',
-            // Bayangan cahaya dinamis yang bergeser berlawanan arah dengan mouse
-            textShadow: `
-              ${-deltaX * 28}px ${-deltaY * 28}px 60px rgba(255, 255, 255, 0.45),
-              0 0 100px rgba(255, 255, 255, 0.25)
-            `,
+            textShadow: '0 0 60px rgba(255, 255, 255, 0.45), 0 0 100px rgba(255, 255, 255, 0.25)',
             transition: 'text-shadow 0.15s ease-out'
           }}
         >
@@ -338,18 +348,15 @@ export default function HistoryEnding({
         {isHoveringConnect && !isFormOpen && (
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
-            animate={{
-              scale: 1,
-              opacity: 1,
-              x: mousePos.x + 18,
-              y: mousePos.y + 18
-            }}
+            animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 450, damping: 26 }}
             style={{
               position: 'absolute',
               top: 0,
               left: 0,
+              x: tooltipX,
+              y: tooltipY,
               pointerEvents: 'none',
               zIndex: 9999,
               backgroundColor: '#ffffff',

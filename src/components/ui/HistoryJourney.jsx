@@ -95,8 +95,9 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [expansionProgress, setExpansionProgress] = useState(0); // 0.0 s/d 1.0 saat jalur mentok
   const [activeMilestoneId, setActiveMilestoneId] = useState(0);
+  const [passedMilestoneCount, setPassedMilestoneCount] = useState(0);
   const [selectedMilestone, setSelectedMilestone] = useState(null); // Modal detail bila diklik
-  const [travelerPos, setTravelerPos] = useState({ x: 150, y: 420 });
+  const travelerRef = useRef(null);
 
   // Hitung posisi absolut (x, y) setiap milestone di atas kurva
   const milestonePositions = useMemo(() => {
@@ -126,9 +127,58 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
     const container = containerRef.current;
     const path = pathRef.current;
     const world = worldRef.current;
-    if (!container || !path || !world || pathLength === 0) return;
+    const traveler = travelerRef.current;
+    if (!container || !path || !world || !traveler || pathLength === 0) return;
+
+    const updateScene = (p) => {
+      const pathRatio = Math.min(1, p / 0.78);
+      const pt = path.getPointAtLength(pathRatio * pathLength);
+
+      traveler.style.left = `${pt.x}px`;
+      traveler.style.top = `${pt.y}px`;
+      path.style.strokeDashoffset = `${pathLength * (1 - pathRatio)}`;
+
+      gsap.set(world, {
+        x: -(pt.x - window.innerWidth / 2),
+        y: -(pt.y - window.innerHeight / 2),
+        force3D: true,
+      });
+
+      const exp = p <= 0.78 ? 0 : Math.min(1, (p - 0.78) / 0.16);
+      setScrollProgress((current) => {
+        const next = Math.round(p * 100) / 100;
+        return current === next ? current : next;
+      });
+      setExpansionProgress((current) => {
+        const next = Math.round(exp * 100) / 100;
+        return current === next ? current : next;
+      });
+
+      const nextPassedCount = TIMELINE_DATA.filter((item) => pathRatio >= item.ratio - 0.04).length;
+      setPassedMilestoneCount((current) => current === nextPassedCount ? current : nextPassedCount);
+
+      let closest = TIMELINE_DATA[0];
+      let minDiff = Infinity;
+      TIMELINE_DATA.forEach((item) => {
+        const diff = Math.abs(pathRatio - item.ratio);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closest = item;
+        }
+      });
+      setActiveMilestoneId((current) => current === closest.id ? current : closest.id);
+    };
 
     const ctx = gsap.context(() => {
+      const initialPoint = path.getPointAtLength(0);
+      traveler.style.left = `${initialPoint.x}px`;
+      traveler.style.top = `${initialPoint.y}px`;
+      gsap.set(world, {
+        x: -(initialPoint.x - window.innerWidth / 2),
+        y: -(initialPoint.y - window.innerHeight / 2),
+        force3D: true,
+      });
+
       ScrollTrigger.create({
         trigger: container,
         start: 'top top',
@@ -138,43 +188,9 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
         scrub: 1.1, // Gerakan kamera halus dengan inersia
         anticipatePin: 1,
         onUpdate: (self) => {
-          const p = self.progress;
-          setScrollProgress(p);
-
-          // 1. Fase Penelusuran Garis (0.0 s/d 0.78): Titik berjalan di sepanjang kurva hingga mentok
-          const pathRatio = Math.min(1, p / 0.78);
-          const currentDist = pathRatio * pathLength;
-          const pt = path.getPointAtLength(currentDist);
-          setTravelerPos({ x: pt.x, y: pt.y });
-
-          // 2. Kamera otomatis mengikuti titik (Layar selalu memusatkan titik yang sedang berjalan)
-          const winW = window.innerWidth;
-          const winH = window.innerHeight;
-          const targetCamX = -(pt.x - winW / 2);
-          const targetCamY = -(pt.y - winH / 2);
-
-          gsap.set(world, {
-            x: targetCamX,
-            y: targetCamY,
-            force3D: true,
-          });
-
-          // 3. Fase Pembesaran Lingkaran (0.78 s/d 0.94): Saat jalur sudah mentok di ujung, lingkaran membesar memenuhi layar
-          const exp = p <= 0.78 ? 0 : Math.min(1, (p - 0.78) / 0.16);
-          setExpansionProgress(exp);
-
-          // 4. Deteksi milestone aktif berdasarkan kedekatan rasio garis
-          let closest = TIMELINE_DATA[0];
-          let minDiff = 999;
-          TIMELINE_DATA.forEach((item) => {
-            const diff = Math.abs(pathRatio - item.ratio);
-            if (diff < minDiff) {
-              minDiff = diff;
-              closest = item;
-            }
-          });
-          setActiveMilestoneId(closest.id);
-        }
+          updateScene(self.progress);
+        },
+        onRefresh: (self) => updateScene(self.progress)
       });
     }, container);
 
@@ -461,7 +477,14 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
         >
           <defs>
             {/* Glow Filter untuk Garis Putih Neon */}
-            <filter id="white-line-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <filter
+              id="white-line-glow"
+              filterUnits="userSpaceOnUse"
+              x="100"
+              y="370"
+              width="3600"
+              height="1550"
+            >
               <feGaussianBlur stdDeviation="8" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
@@ -495,17 +518,13 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
             strokeWidth="4"
             strokeLinecap="round"
             filter="url(#white-line-glow)"
-            style={{
-              strokeDasharray: pathLength || 1000,
-              strokeDashoffset: pathLength ? pathLength * (1 - scrollProgress) : 0,
-              transition: 'stroke-dashoffset 0.05s linear'
-            }}
+            style={{ strokeDasharray: pathLength || 1000, strokeDashoffset: pathLength || 1000 }}
           />
         </svg>
 
         {/* 3. MILESTONE NODES, STEM LINES & CARDS */}
         {milestonePositions.map((item) => {
-          const isPassedOrActive = scrollProgress >= item.ratio - 0.04;
+          const isPassedOrActive = item.id < passedMilestoneCount;
           const isFocal = activeMilestoneId === item.id;
 
           return (
@@ -733,10 +752,11 @@ export default function HistoryJourney({ isMobile, onHover, onLeave }) {
         {/* 4. TITIK SCROLL UTAMA (THE GLOWING TRAVELER ORB) */}
         {/* Titik ini bergerak mengikuti garis seiring scroll dan diikuti kamera */}
         <div
+          ref={travelerRef}
           style={{
             position: 'absolute',
-            left: travelerPos.x,
-            top: travelerPos.y,
+            left: 150,
+            top: 420,
             transform: 'translate(-50%, -50%)',
             pointerEvents: 'none',
             zIndex: 35
