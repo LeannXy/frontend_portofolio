@@ -168,9 +168,13 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) 
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       style={{
-        position: 'relative',
+        position: 'fixed',
+        inset: 0,
         zIndex: 80,
+        height: '100vh',
         minHeight: '100vh',
+        overflowY: 'auto',
+        overscrollBehavior: 'contain',
         backgroundColor: '#050505',
         color: '#ffffff',
         padding: isMobile ? '5.5rem 1.25rem 4rem 1.25rem' : '7.5rem 4rem 6rem 4rem',
@@ -707,13 +711,16 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) 
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: '1.25rem'
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+              backgroundColor: '#0a0a0c'
             }}
           >
             <AnimatePresence mode="popLayout">
               {filteredTech.map((tech, idx) => {
                 const isHovered = hoveredCard === tech.name;
+                const isOtherHovered = hoveredCard !== null && hoveredCard !== tech.name;
                 return (
                   <motion.div
                     key={tech.name}
@@ -732,25 +739,49 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) 
                     }}
                     style={{
                       position: 'relative',
-                      backgroundColor: isHovered ? '#121212' : '#0a0a0a',
-                      border: '1px solid',
-                      borderColor: isHovered ? 'rgba(255, 255, 255, 0.45)' : 'rgba(255, 255, 255, 0.09)',
-                      borderRadius: '14px',
+                      backgroundColor: '#0a0a0d',
+                      borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
                       padding: '1.5rem',
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'space-between',
                       minHeight: '190px',
-                      transition: 'all 0.25s ease',
-                      transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
-                      boxShadow: isHovered
-                        ? '0 12px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 255, 255, 0.05)'
-                        : 'none',
+                      overflow: 'hidden',
+                      boxSizing: 'border-box',
+                      opacity: isOtherHovered ? 0.32 : 1,
+                      filter: isOtherHovered ? 'brightness(0.65)' : 'none',
+                      transition: 'opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
                       cursor: 'default'
                     }}
                   >
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        backgroundColor: '#ffffff',
+                        transform: isHovered ? 'scaleY(1) translateZ(0)' : 'scaleY(0) translateZ(0)',
+                        transformOrigin: isHovered ? 'bottom' : 'top',
+                        transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                        willChange: 'transform',
+                        zIndex: 1,
+                        pointerEvents: 'none'
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: '2px',
+                        backgroundColor: isHovered ? '#000000' : 'transparent',
+                        zIndex: 3,
+                        transition: 'all 0.4s ease'
+                      }}
+                    />
                     {/* Header Kartu */}
-                    <div>
+                    <div style={{ position: 'relative', zIndex: 2 }}>
                       <div
                         style={{
                           display: 'flex',
@@ -764,7 +795,8 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) 
                             fontFamily: 'var(--font-mono)',
                             fontSize: '0.68rem',
                             letterSpacing: '1px',
-                            color: 'rgba(255, 255, 255, 0.4)'
+                            color: isHovered ? '#000000' : 'rgba(255, 255, 255, 0.4)',
+                            transition: 'color 0.4s ease'
                           }}
                         >
                           {String(idx + 1).padStart(2, '0')}
@@ -775,11 +807,12 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) 
                             fontSize: '0.64rem',
                             padding: '3px 8px',
                             borderRadius: '4px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                            border: '1px solid rgba(255, 255, 255, 0.12)',
-                            color: isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+                            backgroundColor: isHovered ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.06)',
+                            border: `1px solid ${isHovered ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.12)'}`,
+                            color: isHovered ? '#000000' : 'rgba(255, 255, 255, 0.7)',
                             letterSpacing: '1px',
-                            textTransform: 'uppercase'
+                            textTransform: 'uppercase',
+                            transition: 'all 0.4s ease'
                           }}
                         >
                           {tech.tag}
@@ -791,9 +824,10 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) 
                           fontFamily: 'var(--font-display)',
                           fontSize: '1.3rem',
                           fontWeight: '700',
-                          color: '#ffffff',
+                          color: isHovered ? '#000000' : '#ffffff',
                           letterSpacing: '-0.02em',
-                          marginBottom: '0.4rem'
+                          marginBottom: '0.4rem',
+                          transition: 'color 0.4s ease'
                         }}
                       >
                         {tech.name}
@@ -803,9 +837,10 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) 
                         style={{
                           fontFamily: 'var(--font-mono)',
                           fontSize: '0.72rem',
-                          color: 'rgba(255, 255, 255, 0.5)',
+                          color: isHovered ? '#18181b' : 'rgba(255, 255, 255, 0.5)',
                           letterSpacing: '0.5px',
-                          marginBottom: '0.75rem'
+                          marginBottom: '0.75rem',
+                          transition: 'color 0.4s ease'
                         }}
                       >
                         {tech.role}
@@ -815,11 +850,14 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) 
                     {/* Deskripsi Singkat */}
                     <p
                       style={{
+                        position: 'relative',
+                        zIndex: 2,
                         fontFamily: 'var(--font-body)',
                         fontSize: '0.82rem',
                         lineHeight: '1.55',
-                        color: 'rgba(255, 255, 255, 0.65)',
-                        margin: 0
+                        color: isHovered ? '#18181b' : 'rgba(255, 255, 255, 0.65)',
+                        margin: 0,
+                        transition: 'color 0.4s ease'
                       }}
                     >
                       {tech.desc}
@@ -833,8 +871,8 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave }) 
                         left: '14px',
                         right: '14px',
                         height: '2px',
-                        backgroundColor: '#ffffff',
-                        opacity: isHovered ? 0.9 : 0,
+                        backgroundColor: '#000000',
+                        opacity: isHovered ? 0.25 : 0,
                         transition: 'opacity 0.25s ease'
                       }}
                     />

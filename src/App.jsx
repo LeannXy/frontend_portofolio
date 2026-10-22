@@ -153,6 +153,7 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [isMainTrackVisible, setIsMainTrackVisible] = useState(true);
+  const [activeSection, setActiveSection] = useState('works');
 
   const [socials, setSocials] = useState({
     github: "GITHUB",
@@ -164,7 +165,23 @@ export default function App() {
   // Navigasi halaman dan scroll ke atas secara instan
   const navigateTo = (view) => {
     setCurrentView(view);
+    if (view === 'home') setActiveSection('works');
     window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  const navigateToSection = (sectionId, sectionName) => {
+    setActiveSection(sectionName);
+    if (currentView !== 'home') {
+      setCurrentView('home');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+      return;
+    }
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -199,6 +216,47 @@ export default function App() {
     observer.observe(mainTrack);
 
     return () => observer.disconnect();
+  }, [currentView]);
+
+  useEffect(() => {
+    if (currentView !== 'home') return;
+
+    const ctx = gsap.context(() => {
+      ScrollTrigger.create({
+        trigger: '#section-approach',
+        start: 'top center',
+        onEnter: () => setActiveSection('approach'),
+        onEnterBack: () => setActiveSection('approach'),
+        onLeaveBack: () => setActiveSection('works')
+      });
+      ScrollTrigger.create({
+        trigger: '#section-editorial',
+        start: 'top center',
+        onEnter: () => setActiveSection('statement'),
+        onEnterBack: () => setActiveSection('statement'),
+        onLeaveBack: () => setActiveSection('approach')
+      });
+      ScrollTrigger.create({
+        trigger: '#section-history',
+        start: 'top center',
+        onEnter: () => setActiveSection('history'),
+        onEnterBack: () => setActiveSection('history'),
+        onLeaveBack: () => setActiveSection('statement')
+      });
+    });
+
+    ScrollTrigger.refresh();
+    return () => ctx.revert();
+  }, [currentView]);
+
+  useEffect(() => {
+    if (currentView !== 'about') return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
   }, [currentView]);
 
   // Inisialisasi Lenis Smooth Scroll dan GSAP ScrollTrigger (Hanya aktif di Home)
@@ -404,8 +462,8 @@ export default function App() {
             onMouseLeave={onLeave}
             style={{
               cursor: 'pointer',
-              color: currentView === 'home' ? '#ffffff' : 'rgba(255,255,255,0.6)',
-              borderBottom: currentView === 'home' ? '2px solid #ffffff' : 'none',
+              color: currentView === 'home' && activeSection === 'works' ? '#ffffff' : 'rgba(255,255,255,0.6)',
+              borderBottom: currentView === 'home' && activeSection === 'works' ? '2px solid #ffffff' : 'none',
               paddingBottom: '2px'
             }}
           >
@@ -413,21 +471,13 @@ export default function App() {
           </span>
           <span
             className="nav-link"
-            onClick={() => {
-              if (currentView !== 'home') {
-                navigateTo('home');
-                setTimeout(() => {
-                  document.getElementById('section-approach')?.scrollIntoView({ behavior: 'smooth' });
-                }, 150);
-              } else {
-                document.getElementById('section-approach')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
+            onClick={() => navigateToSection('section-approach', 'approach')}
             onMouseEnter={onHover}
             onMouseLeave={onLeave}
             style={{
               cursor: 'pointer',
-              color: 'rgba(255,255,255,0.6)',
+              color: currentView === 'home' && activeSection === 'approach' ? '#ffffff' : 'rgba(255,255,255,0.6)',
+              borderBottom: currentView === 'home' && activeSection === 'approach' ? '2px solid #ffffff' : 'none',
               paddingBottom: '2px'
             }}
           >
@@ -435,21 +485,13 @@ export default function App() {
           </span>
           <span
             className="nav-link"
-            onClick={() => {
-              if (currentView !== 'home') {
-                navigateTo('home');
-                setTimeout(() => {
-                  document.getElementById('section-editorial')?.scrollIntoView({ behavior: 'smooth' });
-                }, 150);
-              } else {
-                document.getElementById('section-editorial')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
+            onClick={() => navigateToSection('section-editorial', 'statement')}
             onMouseEnter={onHover}
             onMouseLeave={onLeave}
             style={{
               cursor: 'pointer',
-              color: 'rgba(255,255,255,0.6)',
+              color: currentView === 'home' && activeSection === 'statement' ? '#ffffff' : 'rgba(255,255,255,0.6)',
+              borderBottom: currentView === 'home' && activeSection === 'statement' ? '2px solid #ffffff' : 'none',
               paddingBottom: '2px'
             }}
           >
@@ -457,21 +499,13 @@ export default function App() {
           </span>
           <span
             className="nav-link"
-            onClick={() => {
-              if (currentView !== 'home') {
-                navigateTo('home');
-                setTimeout(() => {
-                  document.getElementById('section-history')?.scrollIntoView({ behavior: 'smooth' });
-                }, 150);
-              } else {
-                document.getElementById('section-history')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
+            onClick={() => navigateToSection('section-history', 'history')}
             onMouseEnter={onHover}
             onMouseLeave={onLeave}
             style={{
               cursor: 'pointer',
-              color: 'rgba(255,255,255,0.6)',
+              color: currentView === 'home' && activeSection === 'history' ? '#ffffff' : 'rgba(255,255,255,0.6)',
+              borderBottom: currentView === 'home' && activeSection === 'history' ? '2px solid #ffffff' : 'none',
               paddingBottom: '2px'
             }}
           >
@@ -556,18 +590,15 @@ export default function App() {
         </span>
       </div>
 
-      {/* KONDISIONAL VIEW: HALAMAN KHUSUS ABOUT vs HALAMAN HOME (HERO & 3D PEGAS) */}
-      <AnimatePresence mode="wait">
-        {currentView === 'about' ? (
-          <AboutPage
-            key="about-view"
-            onBackToHome={() => navigateTo('home')}
-            isMobile={isMobile}
-            onHover={onHover}
-            onLeave={onLeave}
-          />
-        ) : (
-          <div key="home-view">
+      {/* Keep the home scene mounted so its WebGL textures survive About navigation. */}
+      <div
+        key="home-view"
+        aria-hidden={currentView === 'about'}
+        style={{
+          visibility: currentView === 'home' ? 'visible' : 'hidden',
+          pointerEvents: currentView === 'home' ? 'auto' : 'none'
+        }}
+      >
             {/* 3D Canvas: Bintang Kosmik di Latar Belakang, Orbit Melingkar di Hero & Pegas 3D di Section 2 */}
             <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 1 }}>
               <Suspense fallback={null}>
@@ -578,7 +609,7 @@ export default function App() {
                   clickedProject={clickedProject}
                   setHoveredProject={setHoveredProject}
                   setClickedProject={setClickedProject}
-                  isMainTrackVisible={isMainTrackVisible}
+                  isMainTrackVisible={isMainTrackVisible && currentView === 'home'}
                 />
               </Suspense>
             </div>
@@ -767,7 +798,17 @@ export default function App() {
               onHover={onHover}
               onLeave={onLeave}
             />
-          </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {currentView === 'about' && (
+          <AboutPage
+            key="about-view"
+            onBackToHome={() => navigateTo('home')}
+            isMobile={isMobile}
+            onHover={onHover}
+            onLeave={onLeave}
+          />
         )}
       </AnimatePresence>
 
