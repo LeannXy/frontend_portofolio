@@ -4,6 +4,7 @@ import { Image, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { apiAssetUrl } from '../../lib/portfolioApi.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -188,7 +189,7 @@ function HelixCard({
         {/* Gambar Proyek Depan (Cerah & Tajam) */}
         <Image
           ref={frontImageRef}
-          url={proj.image}
+          url={apiAssetUrl(proj.image)}
           scale={baseScale}
           transparent
           onPointerOver={(e) => {

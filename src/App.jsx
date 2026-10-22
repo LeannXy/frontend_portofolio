@@ -9,7 +9,7 @@ import EditorialIntro from './components/ui/EditorialIntro';
 import HistoryJourney from './components/ui/HistoryJourney';
 import AboutPage from './components/ui/AboutPage';
 import { INITIAL_PROJECTS } from '../shared/initialProjects.js';
-import { normalizeProjects } from './lib/portfolioApi.js';
+import { apiUrl, normalizeProjects } from './lib/portfolioApi.js';
 import { DEFAULT_SITE_CONTENT, normalizeSiteContent } from './lib/siteContent.js';
 import './App.css';
 
@@ -37,6 +37,7 @@ export default function App() {
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [isMainTrackVisible, setIsMainTrackVisible] = useState(true);
   const [activeSection, setActiveSection] = useState('works');
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   const [socials, setSocials] = useState({
     github: "GITHUB",
@@ -109,7 +110,7 @@ export default function App() {
 
   const refreshProjects = async () => {
     try {
-      const response = await fetch('/api/projects');
+      const response = await fetch(apiUrl('/api/projects'));
       if (!response.ok) throw new Error('Tidak dapat memuat daftar proyek dari backend.');
       setProjects(normalizeProjects(await response.json()));
       setProjectApiError('');
@@ -120,7 +121,7 @@ export default function App() {
   };
 
   const refreshSiteContent = async () => {
-    const response = await fetch('/api/content');
+    const response = await fetch(apiUrl('/api/content'));
     if (!response.ok) throw new Error('Tidak dapat memuat konten situs dari backend.');
     const saved = await response.json();
     const content = normalizeSiteContent(saved);
@@ -228,6 +229,54 @@ export default function App() {
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = previousOverflow;
+    };
+  }, [currentView]);
+
+  useEffect(() => {
+    const aboutScroller = currentView === 'about'
+      ? document.querySelector('.about-page-shell')
+      : null;
+    const scrollContainer = aboutScroller ?? document.scrollingElement;
+    const lenis = currentView === 'home' ? lenisRef.current : null;
+    let frameId = 0;
+
+    const updateScrollProgress = () => {
+      if (frameId) return;
+      frameId = requestAnimationFrame(() => {
+        frameId = 0;
+        if (!scrollContainer) return;
+
+        const maxScroll = Math.max(0, scrollContainer.scrollHeight - scrollContainer.clientHeight);
+        const scrollTop = scrollContainer.scrollTop;
+        const nextProgress = maxScroll > 0
+          ? Math.round(Math.min(1, Math.max(0, scrollTop / maxScroll)) * 1000) / 10
+          : 0;
+
+        setScrollProgress((current) => current === nextProgress ? current : nextProgress);
+      });
+    };
+
+    const resizeObserver = new ResizeObserver(updateScrollProgress);
+    resizeObserver.observe(document.body);
+    if (aboutScroller) resizeObserver.observe(aboutScroller);
+    const mainTrack = document.getElementById('main-scroll-track');
+    if (mainTrack) resizeObserver.observe(mainTrack);
+
+    window.addEventListener('scroll', updateScrollProgress, { passive: true });
+    window.addEventListener('resize', updateScrollProgress);
+    aboutScroller?.addEventListener('scroll', updateScrollProgress, { passive: true });
+    lenis?.on('scroll', updateScrollProgress);
+    ScrollTrigger.addEventListener('refresh', updateScrollProgress);
+    updateScrollProgress();
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      resizeObserver.disconnect();
+      window.removeEventListener('scroll', updateScrollProgress);
+      window.removeEventListener('resize', updateScrollProgress);
+      aboutScroller?.removeEventListener('scroll', updateScrollProgress);
+      lenis?.off('scroll', updateScrollProgress);
+      ScrollTrigger.removeEventListener('refresh', updateScrollProgress);
     };
   }, [currentView]);
 
@@ -527,6 +576,44 @@ export default function App() {
           </a>
         </div>
       </nav>
+
+      {loadingComplete && currentView !== 'admin' && (
+        <button
+          className="scroll-progress-indicator"
+          type="button"
+          aria-label={`Halaman sudah digulir ${scrollProgress.toFixed(1)} persen. Kembali ke atas`}
+          onClick={() => {
+            if (currentView === 'about') {
+              document.querySelector('.about-page-shell')?.scrollTo({ top: 0, behavior: 'smooth' });
+              return;
+            }
+            scrollToPosition(0, 'works');
+          }}
+        >
+          <span className="scroll-progress-label" aria-hidden="true">SCROLL</span>
+          <span
+            className="scroll-progress-track"
+            role="progressbar"
+            aria-label="Progres gulir halaman"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow={scrollProgress}
+          >
+            <span
+              className="scroll-progress-fill"
+              style={{ transform: `scaleY(${scrollProgress / 100})` }}
+            />
+            <span
+              className="scroll-progress-marker"
+              style={{ top: `${scrollProgress}%` }}
+            />
+          </span>
+          <span className="scroll-progress-value" aria-hidden="true">
+            {scrollProgress.toFixed(1)}<small>%</small>
+          </span>
+          <span className="scroll-progress-top" aria-hidden="true">↑</span>
+        </button>
+      )}
 
       {projectApiError && currentView === 'home' && (
         <div

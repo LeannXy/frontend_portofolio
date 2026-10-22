@@ -1,3 +1,15 @@
+const apiOrigin = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '');
+
+export function apiUrl(path) {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${apiOrigin}${normalizedPath}`;
+}
+
+export function apiAssetUrl(path) {
+  if (typeof path !== 'string' || !path.startsWith('/uploads/')) return path;
+  return apiUrl(path);
+}
+
 export function normalizeProject(project) {
   return {
     ...project,

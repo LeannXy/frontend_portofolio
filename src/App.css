@@ -206,6 +206,108 @@ body {
   animation-delay: 0.92s;
 }
 
+.scroll-progress-indicator {
+  position: fixed;
+  top: 50%;
+  right: 1.25rem;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(8, 8, 8, 0.48);
+  color: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+}
+
+.scroll-progress-indicator:hover,
+.scroll-progress-indicator:focus-visible {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(18, 18, 18, 0.88);
+}
+
+.scroll-progress-indicator:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 4px;
+}
+
+.scroll-progress-label {
+  writing-mode: vertical-rl;
+  font: 0.55rem var(--font-mono);
+  letter-spacing: 0.18em;
+}
+
+.scroll-progress-track {
+  position: relative;
+  display: block;
+  width: 2px;
+  height: 104px;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.22) 0,
+    rgba(255, 255, 255, 0.22) 1px,
+    transparent 1px,
+    transparent 8px
+  );
+}
+
+.scroll-progress-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.52), #ffffff);
+  transform-origin: top;
+  transition: transform 0.16s linear;
+}
+
+.scroll-progress-marker {
+  position: absolute;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  border: 1px solid #ffffff;
+  border-radius: 50%;
+  background: #080808;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+  transform: translate(-50%, -50%);
+  transition: top 0.16s linear;
+}
+
+.scroll-progress-value {
+  color: #ffffff;
+  font: 700 0.68rem var(--font-mono);
+  letter-spacing: -0.04em;
+}
+
+.scroll-progress-value small {
+  margin-left: 1px;
+  font-size: 0.48rem;
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.scroll-progress-top {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  color: #ffffff;
+  font: 0.75rem var(--font-mono);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.scroll-progress-indicator:hover .scroll-progress-top {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.12);
+}
+
 /* Background kinetic text */
 .bg-kinetic-text {
   font-family: var(--font-display);
@@ -443,6 +545,16 @@ body {
 }
 
 @media (max-width: 760px) {
+  .scroll-progress-indicator {
+    right: 0.5rem;
+    gap: 8px;
+    padding: 9px 7px;
+  }
+
+  .scroll-progress-track {
+    height: 76px;
+  }
+
   .home-social-links {
     height: auto !important;
     left: 1rem !important;
@@ -966,6 +1078,13 @@ body {
   .about-topbar button,
   .about-tech-heading button,
   .about-footer button {
+    transition: none !important;
+  }
+
+  .scroll-progress-indicator,
+  .scroll-progress-fill,
+  .scroll-progress-marker,
+  .scroll-progress-top {
     transition: none !important;
   }
 

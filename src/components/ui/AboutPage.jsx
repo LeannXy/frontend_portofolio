@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { DEFAULT_TECHNOLOGIES } from '../../lib/siteContent.js';
+import { apiAssetUrl } from '../../lib/portfolioApi.js';
 
 export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, technologies = DEFAULT_TECHNOLOGIES, profileImage = '/profile.webp' }) {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -155,7 +156,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
               {/* Foto Aktual */}
               <img
                 className="about-portrait-image"
-                src={profileImage}
+                src={apiAssetUrl(profileImage)}
                 alt="Billean Uji Prakasa"
                 style={{
                   width: '100%',

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { normalizeProject, normalizeProjects, toApiProject } from '../../lib/portfolioApi.js';
+import { apiAssetUrl, apiUrl, normalizeProject, normalizeProjects, toApiProject } from '../../lib/portfolioApi.js';
 import { DEFAULT_SITE_CONTENT, normalizeSiteContent } from '../../lib/siteContent.js';
 import { convertImageToWebP } from '../../lib/imageUpload.js';
 
@@ -14,8 +14,8 @@ const EMPTY_PROJECT = {
 };
 
 async function apiRequest(url, options = {}) {
-  const response = await fetch(url, {
-    credentials: 'same-origin',
+  const response = await fetch(apiUrl(url), {
+    credentials: 'include',
     ...options,
     headers: options.body instanceof FormData
       ? options.headers
@@ -254,7 +254,7 @@ export default function AdminDashboard({ onClose, onProjectsChanged, onSiteConte
     let converted = 0;
     try {
       for (const project of legacyImageProjects) {
-        const response = await fetch(project.image, { credentials: 'same-origin' });
+        const response = await fetch(apiAssetUrl(project.image), { credentials: 'include' });
         if (!response.ok) throw new Error(`Gambar "${project.title}" tidak dapat dimuat.`);
         const source = await response.blob();
         const imageFile = new File([source], `${project.id}.jpg`, { type: source.type || 'image/jpeg' });
@@ -462,7 +462,7 @@ export default function AdminDashboard({ onClose, onProjectsChanged, onSiteConte
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '1px', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.12)' }}>
                 {projects.map((project) => (
                   <article key={project.id} style={{ background: '#0a0a0c', minWidth: 0 }}>
-                    <img src={project.image} alt="" loading="lazy" style={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block', background: '#151515' }} />
+                    <img src={apiAssetUrl(project.image)} alt="" loading="lazy" style={{ width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block', background: '#151515' }} />
                     <div style={{ padding: '1rem' }}>
                       <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '1px' }}>{project.category} / {project.year}</div>
                       <h3 style={{ margin: '0.5rem 0 1rem', color: '#fff', fontFamily: 'var(--font-display)', fontSize: '1.1rem' }}>{project.title}</h3>

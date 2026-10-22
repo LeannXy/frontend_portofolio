@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { apiAssetUrl } from '../../lib/portfolioApi.js';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -67,7 +68,7 @@ return (
           key={`intro-${proj.id}`}
           className="abstract-card"
           // ... (properti motion lainnya biarkan sama persis seperti sebelumnya)
-          src={proj.image}
+          src={apiAssetUrl(proj.image)}
           alt=""
           initial={{ x: positions[i].startX, y: positions[i].startY, rotate: positions[i].rotation, scale: 0.5, opacity: 0 }}
           animate={{ x: positions[i].targetX, y: positions[i].targetY, rotate: positions[i].rotation * 0.5, scale: 1, opacity: 0.8 }}
