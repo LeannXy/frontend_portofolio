@@ -919,6 +919,7 @@ export default function App() {
               onLeave={onLeave}
               onContactActive={handleContactActive}
               timelineData={siteContent.history}
+              contactEmail={siteContent.contact.email}
             />
       </div>
 
@@ -932,6 +933,7 @@ export default function App() {
             onLeave={onLeave}
             technologies={siteContent.technologies}
             profileImage={siteContent.profileImage}
+            contact={siteContent.contact}
           />
         )}
       </AnimatePresence>

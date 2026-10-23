@@ -384,7 +384,8 @@ export default function AdminDashboard({ onClose, onProjectsChanged, onSiteConte
                   ['history', 'Histori'],
                   ['technologies', 'Teknologi About'],
                   ['profile', 'Foto About'],
-                  ['socials', 'Media sosial']
+                  ['socials', 'Media sosial'],
+                  ['contact', 'Email & GitHub']
                 ].map(([key, label]) => (
                   <button
                     key={key}
@@ -485,6 +486,13 @@ export default function AdminDashboard({ onClose, onProjectsChanged, onSiteConte
                     inputStyle={inputStyle}
                     labelStyle={labelStyle}
                   />
+                ) : activeTab === 'contact' ? (
+                  <ContactEditor
+                    value={siteContent.contact}
+                    onSave={saveContent}
+                    inputStyle={inputStyle}
+                    labelStyle={labelStyle}
+                  />
                 ) : (
                   <ContentEditor
                     key={activeTab}
@@ -545,6 +553,48 @@ function ProfileImageEditor({ value, onSave, isSaving, inputStyle, labelStyle })
         </button>
       </div>
     </section>
+  );
+}
+
+function ContactEditor({ value, onSave, inputStyle, labelStyle }) {
+  const [draft, setDraft] = useState(value);
+
+  return (
+    <form
+      onSubmit={(event) => { event.preventDefault(); onSave('contact', draft); }}
+      style={{ display: 'grid', gap: '1rem', maxWidth: '760px', padding: 'clamp(1rem, 3vw, 2rem)', background: '#0a0a0c', border: '1px solid rgba(255,255,255,0.12)' }}
+    >
+      <div>
+        <h2 style={{ margin: '0 0 0.5rem', color: '#fff', fontFamily: 'var(--font-display)' }}>Email & repository GitHub</h2>
+        <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>
+          Email ini dipakai pada tombol About, kontak langsung, dan sebagai tujuan pesan dari formulir Let's Contact.
+        </p>
+      </div>
+      <label style={labelStyle}>
+        EMAIL KONTAK
+        <input
+          type="email"
+          required
+          maxLength={254}
+          autoComplete="email"
+          value={draft.email || ''}
+          onChange={(event) => setDraft((current) => ({ ...current, email: event.target.value }))}
+          placeholder="nama@email.com"
+          style={inputStyle}
+        />
+      </label>
+      <label style={labelStyle}>
+        URL REPOSITORY GITHUB
+        <input
+          type="url"
+          value={draft.githubRepo || ''}
+          onChange={(event) => setDraft((current) => ({ ...current, githubRepo: event.target.value }))}
+          placeholder="https://github.com/username/repository"
+          style={inputStyle}
+        />
+      </label>
+      <button type="submit" style={primaryButtonStyle}>SIMPAN KONTAK</button>
+    </form>
   );
 }
 

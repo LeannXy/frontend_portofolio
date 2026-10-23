@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
+import { apiUrl } from '../../lib/portfolioApi.js';
 
 // Data 4 Akun Media Sosial dengan Logo Vektor Resmi
 const SOCIAL_FLOATING_LOGOS = [
@@ -64,7 +65,8 @@ export default function HistoryEnding({
   isFullyActive,     // true saat lingkaran telah memenuhi layar
   isMobile,
   onHover,
-  onLeave
+  onLeave,
+  contactEmail
 }) {
   const containerRef = useRef(null);
   const glowRef = useRef(null);
@@ -78,9 +80,11 @@ export default function HistoryEnding({
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   // Form State
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', message: '', website: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [sentMessage, setSentMessage] = useState('');
 
   // Hitung radius lingkaran membesar: dari 0% hingga 160% (memenuhi layar penuh)
   const portalRadius = Math.min(160, Math.pow(expansionProgress, 2.2) * 160);
@@ -121,20 +125,26 @@ export default function HistoryEnding({
   }, []);
 
   // Handle Form Submit
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.email) return;
-
+    setFormError('');
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const response = await fetch(apiUrl('/api/contact'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok && !result.sent) throw new Error(result.error || 'Pesan gagal dikirim. Silakan coba lagi.');
       setIsSent(true);
-      setTimeout(() => {
-        setIsSent(false);
-        setIsFormOpen(false);
-        setFormData({ name: '', email: '', message: '' });
-      }, 2000);
-    }, 1000);
+      setSentMessage(result.message || result.error || 'Pesan berhasil dikirim.');
+      setFormData({ name: '', email: '', message: '', website: '' });
+    } catch (error) {
+      setFormError(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isVisible) return null;
@@ -288,7 +298,12 @@ export default function HistoryEnding({
           setIsHoveringConnect(false);
           onLeave();
         }}
-        onClick={() => setIsFormOpen(true)}
+        onClick={() => {
+          setIsSent(false);
+          setFormError('');
+          setSentMessage('');
+          setIsFormOpen(true);
+        }}
         ref={connectRef}
         style={{
           position: 'relative',
@@ -485,6 +500,16 @@ export default function HistoryEnding({
 
               {/* Form Input Fields */}
               <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <input
+                  type="text"
+                  name="website"
+                  value={formData.website || ''}
+                  onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  style={{ position: 'absolute', left: '-10000px', width: '1px', height: '1px' }}
+                />
                 <div>
                   <label
                     style={{
@@ -629,15 +654,23 @@ export default function HistoryEnding({
                   >
                     <span>
                       {isSent
-                        ? "✓ TRANSMITTED! I'LL BE IN TOUCH"
+                        ? "✓ MESSAGE SENT"
                         : isSubmitting
                         ? "TRANSMITTING..."
                         : "TRANSMIT MESSAGE ↗"}
                     </span>
                   </button>
 
+                  {formError && <p role="alert" style={{ margin: 0, color: '#ffaaa8', fontSize: '0.85rem' }}>{formError}</p>}
+                  {isSent && (
+                    <p role="status" style={{ margin: 0, color: '#aaffc5', fontSize: '0.85rem', textAlign: 'center' }}>
+                      {sentMessage}
+                    </p>
+                  )}
+
                   <a
-                    href="mailto:contact@billean.dev"
+                    href={contactEmail ? `mailto:${contactEmail}` : undefined}
+                    aria-disabled={!contactEmail}
                     style={{
                       textAlign: 'center',
                       fontFamily: 'var(--font-mono)',
@@ -647,7 +680,7 @@ export default function HistoryEnding({
                       marginTop: '4px'
                     }}
                   >
-                    Atau kirim langsung via surel: <strong style={{ color: '#ffffff' }}>contact@billean.dev</strong>
+                    {contactEmail ? <>Atau kirim langsung via surel: <strong style={{ color: '#ffffff' }}>{contactEmail}</strong></> : 'Email kontak belum diatur.'}
                   </a>
                 </div>
               </form>

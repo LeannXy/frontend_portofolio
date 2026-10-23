@@ -310,7 +310,7 @@ function ParticleGridWidget({ color }) {
   );
 }
 
-export default function CapabilitiesLab({ onHoverCard, onHover, onLeave, isMobile }) {
+export default function CapabilitiesLab({ onHoverCard, onHover, onLeave, isMobile, contactEmail = '' }) {
   const [selectedBlueprint, setSelectedBlueprint] = useState(null);
 
   // Efek kemiringan 3D gyroskopik pada kartu saat mouse digerakkan
@@ -735,7 +735,8 @@ export default function CapabilitiesLab({ onHoverCard, onHover, onLeave, isMobil
               {/* Action Button */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
                 <a
-                  href="mailto:contact@billean.dev"
+                  href={contactEmail ? `mailto:${contactEmail}` : undefined}
+                  aria-disabled={!contactEmail}
                   style={{
                     padding: '12px 24px',
                     backgroundColor: selectedBlueprint.color,

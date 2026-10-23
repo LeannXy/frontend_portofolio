@@ -29,11 +29,12 @@ The frontend can be hosted on Vercel's free static hosting. This project also ne
 2. Set **Root Directory** to the repository root (`./`), build command to `npm run build`, and output directory to `dist`.
 3. Deploy once to obtain the production URL, such as `https://your-project.vercel.app`. `vercel.json` supplies SPA deep links (including `/admin`) and response security headers.
 
-### 2. Set up Neon and Cloudinary
+### 2. Set up Neon, Cloudinary, and Gmail SMTP
 
 1. Create a PostgreSQL database in Neon. Copy its pooled connection string for the Render `DATABASE_URL` secret.
 2. Create a Cloudinary account and copy its cloud name, API key, and API secret. The API signs uploads server-side; never put these values in Vercel or in a `VITE_*` variable.
 3. Existing local `/uploads/...` files are not migrated automatically. Re-upload those images through admin after deployment, or migrate them to Cloudinary before switching production traffic.
+4. Enable 2-Step Verification on the sending Google account, then create a [Google App Password](https://myaccount.google.com/apppasswords). Use the account's Gmail address as `MAIL_USERNAME` and `MAIL_FROM_ADDRESS`; use the App Password as `MAIL_PASSWORD`. Enter the 16-character password without spaces. Never use your regular Google account password.
 
 ### 3. Deploy the Go API to Render
 
@@ -46,6 +47,10 @@ The API directory includes a `Dockerfile`, `.dockerignore`, and `render.yaml`. R
    - `SESSION_SECRET`: generate a random secret of at least 32 characters (for example, `openssl rand -base64 48`).
    - `FRONTEND_ORIGINS`: exact production origin from the Vercel deployment, with no trailing slash.
    - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`: Cloudinary credentials.
+   - `MAIL_USERNAME` and `MAIL_FROM_ADDRESS`: the Gmail account address that sends mail.
+   - `MAIL_PASSWORD`: a Google App Password for that account; do not use the regular Google password.
+   - `MAIL_HOST=smtp.gmail.com`, `MAIL_PORT=587`, and `MAIL_ENCRYPTION=tls`: Gmail SMTP settings.
+   - `CONTACT_EMAIL` is optional; the recipient email saved in the admin's **Email & GitHub** tab takes precedence.
 3. Keep the Blueprint's production settings: `APP_ENV=production`, `DB_SSLMODE=require`, `COOKIE_SECURE=true`, and `COOKIE_SAME_SITE=None`. The API refuses production startup if TLS, the exact frontend origin, or Cloudinary storage is missing.
 4. Wait for Render to deploy and note the API origin, such as `https://portfolio-api.onrender.com`.
 
@@ -55,6 +60,7 @@ The API directory includes a `Dockerfile`, `.dockerignore`, and `render.yaml`. R
 2. Confirm the public projects/content load and sign in at `/admin`; test saving content and uploading an image. Confirm the new image URL is hosted by Cloudinary.
 3. Use a custom domain for both services under the same parent domain (for example, `portfolio.example.com` and `api.example.com`) when possible. The included Render configuration uses `SameSite=None` for the default cross-site `vercel.app`/`onrender.com` setup, but browsers may block third-party cookies; a shared custom domain is more reliable for admin sessions.
 4. Do not commit either `.env` file. Rotate local development credentials before deployment and enter fresh secrets directly in the hosting dashboards.
+5. In the admin dashboard, open **Email & GitHub**, enter the contact email and repository URL, and save. The email is used by the About/contact links and receives new contact form messages. Form submissions are delivered through Gmail SMTP, and the sender receives an acknowledgment email.
 
 `VITE_API_URL` is public configuration and is embedded in browser assets. Never store database credentials, the admin password, session secret, or Cloudinary API secret in Vercel's `VITE_*` variables.
 

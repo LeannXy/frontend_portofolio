@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { DEFAULT_TECHNOLOGIES } from '../../lib/siteContent.js';
 import { apiAssetUrl } from '../../lib/portfolioApi.js';
 
-export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, technologies = DEFAULT_TECHNOLOGIES, profileImage = '/profile.webp' }) {
+export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, technologies = DEFAULT_TECHNOLOGIES, profileImage = '/profile.webp', contact }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [hoveredCard, setHoveredCard] = useState(null);
   const shouldReduceMotion = useReducedMotion();
@@ -335,7 +335,8 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
             {/* AKSI TOMBOL CEPAT */}
             <div className="about-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
               <a
-                href="mailto:billeanujiprakasa@gmail.com"
+                href={contact?.email ? `mailto:${contact.email}` : undefined}
+                aria-disabled={!contact?.email}
                 onMouseEnter={onHover}
                 onMouseLeave={onLeave}
                 style={{
@@ -366,7 +367,9 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
               </a>
 
               <a
-                href="https://github.com"
+                href={contact?.githubRepo || undefined}
+                aria-disabled={!contact?.githubRepo}
+                onClick={(event) => { if (!contact?.githubRepo) event.preventDefault(); }}
                 target="_blank"
                 rel="noreferrer"
                 onMouseEnter={onHover}

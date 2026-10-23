@@ -55,7 +55,11 @@ export const DEFAULT_SITE_CONTENT = {
   history: DEFAULT_HISTORY,
   technologies: DEFAULT_TECHNOLOGIES,
   socials: DEFAULT_SOCIALS,
-  profileImage: '/profile.webp'
+  profileImage: '/profile.webp',
+  contact: {
+    email: 'billeanujiprakasa@gmail.com',
+    githubRepo: 'https://github.com'
+  }
 };
 
 export function normalizeSiteContent(value) {
@@ -78,6 +82,9 @@ export function normalizeSiteContent(value) {
       : DEFAULT_SOCIALS,
     profileImage: typeof value.profileImage === 'string' && value.profileImage.trim()
       ? value.profileImage
-      : DEFAULT_SITE_CONTENT.profileImage
+      : DEFAULT_SITE_CONTENT.profileImage,
+    contact: value.contact && typeof value.contact === 'object' && !Array.isArray(value.contact)
+      ? { ...DEFAULT_SITE_CONTENT.contact, ...value.contact }
+      : DEFAULT_SITE_CONTENT.contact
   };
 }
