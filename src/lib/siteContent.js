@@ -26,22 +26,22 @@ export const DEFAULT_HISTORY = [
 ];
 
 export const DEFAULT_TECHNOLOGIES = [
-  { name: 'Laravel 13', category: 'backend', tag: 'Primary Framework', role: 'Backend Architecture', desc: 'Arsitektur MVC modern, Eloquent ORM, migrasi skema database, otentikasi aman, dan pengembangan REST API terstruktur.' },
-  { name: 'PHP', category: 'backend', tag: 'Core Language', role: 'Server-Side Programming', desc: 'Pemrograman berorientasi objek (OOP), manajemen sesi, modularitas kode, dan eksekusi logika backend yang handal.' },
-  { name: 'Golang', category: 'backend', tag: 'High Concurrency', role: 'Systems & Microservices', desc: 'Bahasa terkompilasi dengan performa tinggi, goroutine concurrency, typing kuat, serta efisiensi beban kerja server.' },
-  { name: 'Postman', category: 'backend', tag: 'API Tooling', role: 'Contract & Endpoint Testing', desc: 'Perancangan spesifikasi endpoint REST, pengujian otomasi response JSON, debugging status code, dan dokumentasi API.' },
-  { name: 'PostgreSQL', category: 'database', tag: 'Primary RDBMS', role: 'Enterprise Relational DB', desc: 'Sistem manajemen database relasional tangguh, query kompleks, integritas data ACID, dan indexing skala besar.' },
-  { name: 'MySQL', category: 'database', tag: 'Relational DB', role: 'Data Modeling & Queries', desc: 'Perancangan skema relasional, normalisasi tabel, foreign key integrity, dan optimalisasi query berkecepatan tinggi.' },
-  { name: 'phpMyAdmin', category: 'database', tag: 'DB Administration', role: 'Visual SQL Manager', desc: 'Manajemen database grafis, inspeksi struktur tabel, eksekusi query manual, manipulasi baris, dan ekspor/impor skema.' },
-  { name: 'React.js', category: 'frontend', tag: 'Modern UI', role: 'Frontend Library', desc: 'Komponen modular, state management reaktif, custom hooks, dan arsitektur antarmuka Single Page Application (SPA).' },
-  { name: 'JavaScript', category: 'frontend', tag: 'Core Web', role: 'Modern ESNext', desc: 'Manipulasi DOM dinamis, asynchronous programming (Async/Await), event handling presisi, dan logika interaktif modern.' },
-  { name: 'Three.js / WebGL', category: 'frontend', tag: 'Porto Engine', role: '3D Spatial Graphics', desc: 'Grafis 3D interaktif pada browser, sistem koordinat spasial, material PBR, dan rendering procedural (fondasi portofolio ini).' },
-  { name: 'GSAP & ScrollTrigger', category: 'frontend', tag: 'Porto Engine', role: 'Timeline Motion Engine', desc: 'Orkestrasi animasi timeline 60 FPS, scrubbing scroll dinamis, pin section, dan interaksi fisik responsif.' },
-  { name: 'Framer Motion', category: 'frontend', tag: 'Porto Engine', role: 'Declarative Transitions', desc: 'Animasi transisi halaman mulus, fisika pegas (spring dynamics), gesture hover mikro, dan tata letak dinamis.' },
-  { name: 'Lenis', category: 'frontend', tag: 'Porto Engine', role: 'Smooth Scroll Core', desc: 'Inertial smooth scrolling berakurasi tinggi yang tersinkronisasi mulus dengan ScrollTrigger dan navigasi browser.' },
-  { name: 'Figma', category: 'design', tag: 'UI/UX Design', role: 'Interface Architecture', desc: 'Wireframing, perancangan sistem desain, auto-layout responsif, tipografi harmonis, dan prototyping antarmuka.' },
-  { name: 'Canva', category: 'design', tag: 'Visual Assets', role: 'Creative Layout', desc: 'Penyusunan tata letak visual cepat, aset grafis pendukung, branding presentasi, dan materi visual modern.' },
-  { name: 'Canva Affinity', category: 'design', tag: 'Vector Studio', role: 'Affinity Designer & Graphics', desc: 'Ilustrasi vektor presisi matematis, manipulasi grafis resolusi ultra tinggi, dan tipografi editorial berkelas.' }
+  { name: 'Laravel 13', category: 'backend', tag: 'Primary Framework', role: 'Backend Architecture', desc: 'Modern MVC architecture, Eloquent ORM, database migrations, secure authentication, and structured REST API development.' },
+  { name: 'PHP', category: 'backend', tag: 'Core Language', role: 'Server-Side Programming', desc: 'Object-oriented programming (OOP), session management, modular code, and reliable backend logic.' },
+  { name: 'Golang', category: 'backend', tag: 'High Concurrency', role: 'Systems & Microservices', desc: 'A high-performance compiled language featuring goroutines, strong typing, and efficient server workloads.' },
+  { name: 'Postman', category: 'backend', tag: 'API Tooling', role: 'Contract & Endpoint Testing', desc: 'REST endpoint specification, automated JSON response testing, status-code debugging, and API documentation.' },
+  { name: 'PostgreSQL', category: 'database', tag: 'Primary RDBMS', role: 'Enterprise Relational DB', desc: 'A robust relational database system for complex queries, ACID data integrity, and large-scale indexing.' },
+  { name: 'MySQL', category: 'database', tag: 'Relational DB', role: 'Data Modeling & Queries', desc: 'Relational schema design, table normalization, foreign-key integrity, and high-performance query optimization.' },
+  { name: 'phpMyAdmin', category: 'database', tag: 'DB Administration', role: 'Visual SQL Manager', desc: 'Visual database management, schema inspection, manual query execution, row editing, and schema import/export.' },
+  { name: 'React.js', category: 'frontend', tag: 'Modern UI', role: 'Frontend Library', desc: 'Modular components, reactive state management, custom hooks, and single-page application (SPA) architecture.' },
+  { name: 'JavaScript', category: 'frontend', tag: 'Core Web', role: 'Modern ESNext', desc: 'Dynamic DOM manipulation, asynchronous programming (async/await), precise event handling, and modern interactive logic.' },
+  { name: 'Three.js / WebGL', category: 'frontend', tag: 'Portfolio Engine', role: '3D Spatial Graphics', desc: 'Interactive browser-based 3D graphics, spatial coordinate systems, PBR materials, and procedural rendering—powering this portfolio.' },
+  { name: 'GSAP & ScrollTrigger', category: 'frontend', tag: 'Portfolio Engine', role: 'Timeline Motion Engine', desc: '60 FPS timeline orchestration, dynamic scroll scrubbing, pinned sections, and responsive motion interactions.' },
+  { name: 'Framer Motion', category: 'frontend', tag: 'Portfolio Engine', role: 'Declarative Transitions', desc: 'Smooth page transitions, spring-based motion, micro-interaction gestures, and dynamic layouts.' },
+  { name: 'Lenis', category: 'frontend', tag: 'Portfolio Engine', role: 'Smooth Scroll Core', desc: 'High-precision inertial scrolling synchronized with ScrollTrigger and browser navigation.' },
+  { name: 'Figma', category: 'design', tag: 'UI/UX Design', role: 'Interface Architecture', desc: 'Wireframing, design systems, responsive auto layouts, balanced typography, and interface prototyping.' },
+  { name: 'Canva', category: 'design', tag: 'Visual Assets', role: 'Creative Layout', desc: 'Rapid visual layout creation, supporting graphic assets, presentation branding, and modern visual materials.' },
+  { name: 'Canva Affinity', category: 'design', tag: 'Vector Studio', role: 'Affinity Designer & Graphics', desc: 'Precise vector illustration, ultra-high-resolution graphic editing, and refined editorial typography.' }
 ];
 
 export const DEFAULT_SOCIALS = {

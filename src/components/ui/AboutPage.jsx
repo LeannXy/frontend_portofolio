@@ -19,13 +19,12 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [selectedTechnology]);
 
-  // Kurasi Teknologi yang Dipelajari & Digunakan (Sesuai Permintaan)
   const techCategories = [
-    { id: 'all', label: 'SEMUA' },
+    { id: 'all', label: 'ALL' },
     { id: 'backend', label: 'BACKEND & API' },
     { id: 'database', label: 'DATABASE & DATA' },
-    { id: 'frontend', label: 'FRONTEND & PORTO STACK' },
-    { id: 'design', label: 'DESAIN & KREATIF' }
+    { id: 'frontend', label: 'FRONTEND & PORTFOLIO STACK' },
+    { id: 'design', label: 'DESIGN & CREATIVE' }
   ];
 
   const filteredTech = activeCategory === 'all'
@@ -70,7 +69,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
       />
 
       <div className="about-status-row about-page-content" style={{ maxWidth: '1240px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        {/* NAVIGASI MINIMALIS: KEMBALI KE BERANDA */}
+        {/* Minimal navigation: return home */}
         <div
           className="about-topbar"
           style={{
@@ -112,7 +111,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
             }}
           >
             <span>←</span>
-            <span>BERANDA</span>
+            <span>HOME</span>
           </button>
 
           <div
@@ -127,7 +126,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
             }}
           >
             <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#ffffff', boxShadow: '0 0 10px #ffffff' }} />
-            <span>JEPARA, ID • TERSEDIA UNTUK KOLABORASI</span>
+            <span>JEPARA, ID • AVAILABLE FOR COLLABORATION</span>
           </div>
         </div>
 
@@ -202,7 +201,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                   color: 'rgba(255, 255, 255, 0.85)'
                 }}
               >
-                PROFIL / 2026
+                PROFILE / 2026
               </div>
 
             </div>
@@ -239,12 +238,12 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                   marginTop: '4px'
                 }}
               >
-                PPLG • SMK / Developer Indonesia
+                Software & Game Development • Vocational Student, Indonesia
               </div>
             </div>
           </motion.div>
 
-          {/* BIO RINGKAS & NILAI FILOSOFI (MINIMALIS & TIDAK BERTELE-TELE) */}
+          {/* Concise bio and personal philosophy */}
           <motion.div
             className="about-bio"
             initial={shouldReduceMotion ? false : { opacity: 0, y: 24 }}
@@ -263,7 +262,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                 marginBottom: '1rem'
               }}
             >
-              // TENTANG & PRINSIP
+              // ABOUT & PRINCIPLES
             </div>
 
             <h1
@@ -278,8 +277,8 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                 margin: '0 0 1.5rem 0'
               }}
             >
-              Membangun sistem yang kuat.
-              <span className="about-title-accent"> Merancang pengalaman yang terasa.</span>
+              Building robust systems.
+              <span className="about-title-accent"> Designing experiences that resonate.</span>
             </h1>
 
             <p
@@ -292,7 +291,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                 maxWidth: '680px'
               }}
             >
-              Halo, saya <strong style={{ color: '#ffffff' }}>Billean Uji Prakasa</strong>. Saya berfokus pada rekayasa perangkat lunak modern—menghubungkan ketangguhan sistem backend dan basis data relasional dengan pengalaman antarmuka web modern yang dinamis dan berkelas.
+              Hi, I&apos;m <strong style={{ color: '#ffffff' }}>Billean Uji Prakasa</strong>. I focus on modern software engineering, combining robust backend systems and relational databases with dynamic, polished web experiences.
             </p>
 
             <p
@@ -305,10 +304,10 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                 maxWidth: '680px'
               }}
             >
-              Bagi saya, perangkat lunak yang hebat tidak hanya memiliki logika yang solid dan aman, tetapi juga memberikan rasa interaksi yang memikat dan memuaskan bagi setiap pengguna yang menyentuhnya.
+              To me, great software is more than solid, secure logic. It should also make every interaction engaging and satisfying for the people who use it.
             </p>
 
-            <div className="about-focus-list" aria-label="Fokus keahlian">
+            <div className="about-focus-list" aria-label="Areas of expertise">
               <motion.div
                 className="about-focus-item"
                 whileHover={shouldReduceMotion ? undefined : { y: -4 }}
@@ -323,7 +322,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                 transition={{ duration: 0.2 }}
               >
                 <span>02</span>
-                <strong>Antarmuka web</strong>
+                <strong>Web interfaces</strong>
               </motion.div>
               <motion.div
                 className="about-focus-item"
@@ -331,11 +330,11 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                 transition={{ duration: 0.2 }}
               >
                 <span>03</span>
-                <strong>Interaksi kreatif</strong>
+                <strong>Creative interaction</strong>
               </motion.div>
             </div>
 
-            {/* AKSI TOMBOL CEPAT */}
+            {/* Quick actions */}
             <div className="about-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
               <a
                 href={contact?.email ? `mailto:${contact.email}` : undefined}
@@ -366,7 +365,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                   e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
-                <span>KIRIM EMAIL ↗</span>
+                <span>EMAIL ME ↗</span>
               </a>
 
               <a
@@ -407,7 +406,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
           </motion.div>
         </section>
 
-        {/* SECTION 2: TEKNOLOGI YANG DIGUNAKAN & DIPELAJARI */}
+        {/* SECTION 2: TECHNOLOGIES USED AND LEARNED */}
         <motion.section
           className="about-tech-section"
           initial={shouldReduceMotion ? false : { opacity: 0, y: 30 }}
@@ -416,7 +415,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
           transition={{ duration: shouldReduceMotion ? 0 : 0.6 }}
           style={{ marginBottom: '5rem' }}
         >
-          {/* Header Section Teknologi */}
+          {/* Technology section heading */}
           <div
             className="about-tech-heading"
             style={{
@@ -453,7 +452,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                   margin: 0
                 }}
               >
-                Teknologi & Perangkat Kerja.
+                Technologies & Toolkit.
               </h2>
             </div>
 
@@ -492,7 +491,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
             </div>
           </div>
 
-          {/* Grid Kartu Teknologi */}
+          {/* Technology card grid */}
           <div
             style={{
               display: 'grid',
@@ -512,7 +511,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                     className="about-tech-card"
                     role="button"
                     tabIndex={0}
-                    aria-label={`Lihat detail ${tech.name}`}
+                    aria-label={`View ${tech.name} details`}
                     onClick={() => setSelectedTechnology(tech)}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter' || event.key === ' ') {
@@ -732,7 +731,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                     onMouseEnter={onHover}
                     onMouseLeave={onLeave}
                   >
-                    TUTUP
+                    CLOSE
                   </button>
                 </motion.section>
               </motion.div>
@@ -766,7 +765,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                 marginBottom: '0.4rem'
               }}
             >
-              Mari ciptakan sesuatu yang bermakna.
+              Let&apos;s create something meaningful.
             </div>
             <div
               style={{
@@ -775,7 +774,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                 color: 'rgba(255, 255, 255, 0.55)'
               }}
             >
-              Terbuka untuk diskusi proyek, eksplorasi teknologi, dan peluang rekayasa perangkat lunak.
+              Open to project discussions, technology exploration, and software engineering opportunities.
             </div>
           </div>
 
@@ -803,7 +802,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
               e.currentTarget.style.backgroundColor = '#ffffff';
             }}
           >
-            JELAJAHI KARYA ↗
+            EXPLORE MY WORK ↗
           </button>
         </div>
       </div>
