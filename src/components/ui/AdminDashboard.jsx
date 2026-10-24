@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { apiAssetUrl, apiUrl, normalizeProject, normalizeProjects, toApiProject } from '../../lib/portfolioApi.js';
+import { apiAssetUrl, apiUrl, normalizeProject, normalizeProjects, sortProjectsByYearAndUpload, toApiProject } from '../../lib/portfolioApi.js';
 import { DEFAULT_SITE_CONTENT, normalizeSiteContent } from '../../lib/siteContent.js';
 import { convertImageToWebP } from '../../lib/imageUpload.js';
 
@@ -198,8 +198,10 @@ export default function AdminDashboard({ onClose, onProjectsChanged, onSiteConte
       const project = normalizeProject(savedProject);
 
       setProjects((current) => {
-        if (!editingProject) return [...current, project];
-        return current.map((item) => item.id === project.id ? project : item);
+        const updated = !editingProject
+          ? [...current, project]
+          : current.map((item) => item.id === project.id ? project : item);
+        return sortProjectsByYearAndUpload(updated);
       });
       await onProjectsChanged();
       setFeedback(editingProject ? 'Proyek berhasil diperbarui.' : 'Proyek berhasil ditambahkan.');

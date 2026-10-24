@@ -23,12 +23,26 @@ export function normalizeProject(project) {
   };
 }
 
+export function sortProjectsByYearAndUpload(projects) {
+  return [...projects].sort((a, b) => {
+    const yearA = Number.parseInt(String(a.year ?? '').match(/\d{4}/)?.[0] ?? '', 10) || 0;
+    const yearB = Number.parseInt(String(b.year ?? '').match(/\d{4}/)?.[0] ?? '', 10) || 0;
+    if (yearA !== yearB) return yearB - yearA;
+
+    const uploadedAtA = Date.parse(a.created_at ?? a.createdAt ?? '') || 0;
+    const uploadedAtB = Date.parse(b.created_at ?? b.createdAt ?? '') || 0;
+    if (uploadedAtA !== uploadedAtB) return uploadedAtB - uploadedAtA;
+
+    return Number(a.id ?? a.ID ?? 0) - Number(b.id ?? b.ID ?? 0);
+  });
+}
+
 export function normalizeProjects(response) {
   const projects = Array.isArray(response) ? response : response?.data;
   if (!Array.isArray(projects)) {
     throw new Error('Format daftar proyek dari API tidak valid.');
   }
-  return projects.map(normalizeProject);
+  return sortProjectsByYearAndUpload(projects.map(normalizeProject));
 }
 
 export function toApiProject(project) {
