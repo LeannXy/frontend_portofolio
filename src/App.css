@@ -1009,7 +1009,7 @@ body {
 
 .about-portrait-column:hover .about-portrait-image {
   transform: scale(1.035);
-  filter: grayscale(100%) contrast(114%) brightness(102%) !important;
+  filter: grayscale(0%) contrast(108%) brightness(100%) !important;
 }
 
 .about-portrait-label {

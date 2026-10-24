@@ -177,14 +177,6 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                   filter: 'grayscale(100%) contrast(108%) brightness(96%)',
                   transition: 'transform 0.5s ease, filter 0.5s ease'
                 }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.03)';
-                  e.currentTarget.style.filter = 'grayscale(100%) contrast(114%) brightness(102%)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.filter = 'grayscale(100%) contrast(108%) brightness(96%)';
-                }}
                 onError={(e) => {
                   if (e.currentTarget.src !== new URL('/profile.webp', window.location.origin).href) {
                     e.currentTarget.src = '/profile.webp';
