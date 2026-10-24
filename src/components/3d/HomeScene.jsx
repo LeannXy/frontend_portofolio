@@ -8,12 +8,13 @@ export default function HomeScene({
   activeProject,
   clickedProject,
   setHoveredProject,
+  clearHoveredProject,
   setClickedProject,
   isMainTrackVisible
 }) {
   return (
     <Canvas
-      dpr={[1, 1.1]}
+      dpr={[1, 1.25]}
       frameloop={isMainTrackVisible ? 'always' : 'never'}
       gl={{ powerPreference: 'high-performance' }}
       onPointerMissed={() => setClickedProject(null)}
@@ -26,6 +27,7 @@ export default function HomeScene({
           isLoaded={loadingComplete}
           activeProject={activeProject}
           setHoveredProject={setHoveredProject}
+          clearHoveredProject={clearHoveredProject}
           clickedProject={clickedProject}
           setClickedProject={setClickedProject}
         />

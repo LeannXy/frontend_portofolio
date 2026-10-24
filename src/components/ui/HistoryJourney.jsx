@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -37,12 +38,20 @@ function positionHistoryMilestoneCard(container, path, pathLength, timelineData,
   const travelerPoint = path.getPointAtLength(pathRatio * pathLength);
   const milestonePoint = path.getPointAtLength(activeMilestone.ratio * pathLength);
   const sectionRect = container.getBoundingClientRect();
-  const headerRect = container.querySelector('.history-header-hud').getBoundingClientRect();
-  const hudRect = container.querySelector('.history-bottom-hud').getBoundingClientRect();
+  const header = container.querySelector('.history-header-hud');
+  const bottomHud = container.querySelector('.history-bottom-hud');
+  const navbar = document.querySelector('.site-nav');
+  const headerRect = header?.getBoundingClientRect();
+  const hudRect = bottomHud?.getBoundingClientRect();
+  const navbarRect = navbar?.getBoundingClientRect();
   const screenNodeX = sectionRect.left + milestonePoint.x - travelerPoint.x + window.innerWidth / 2;
   const screenNodeY = sectionRect.top + milestonePoint.y - travelerPoint.y + window.innerHeight / 2;
-  const safeTop = Math.max(sectionRect.top, headerRect.bottom + 12);
-  const safeBottom = Math.min(sectionRect.bottom, hudRect.top - 12);
+  const safeTop = Math.max(
+    sectionRect.top,
+    (headerRect?.bottom ?? sectionRect.top) + 12,
+    (navbarRect?.bottom ?? sectionRect.top) + 16
+  );
+  const safeBottom = Math.min(sectionRect.bottom, (hudRect?.top ?? sectionRect.bottom) - 12);
   const availableHeight = Math.max(1, safeBottom - safeTop - 16);
   const availableWidth = Math.max(1, window.innerWidth - 32);
   const cardScale = Math.min(
@@ -639,7 +648,9 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
                   left: isMobile ? '28px' : '36px',
                   width: isMobile ? 'min(320px, calc(100vw - 32px))' : '360px',
                   maxWidth: 'calc(100vw - 32px)',
-                  overflow: 'visible',
+                  maxHeight: 'clamp(220px, 58dvh, 500px)',
+                  overflowX: 'hidden',
+                  overflowY: 'auto',
                   boxSizing: 'border-box',
                   padding: isMobile ? '14px' : '18px',
                   background: 'rgba(5, 5, 5, 0.94)',
@@ -863,164 +874,77 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
       {/* ========================================================================= */}
       {/* MODAL PENCAPAIAN DETAIL SAAT KARTU MILSTONE DIKLIK                      */}
       {/* ========================================================================= */}
-      <AnimatePresence>
-        {selectedMilestone && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedMilestone(null)}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100vw',
-              height: '100vh',
-              backgroundColor: 'rgba(0, 0, 0, 0.88)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              zIndex: 9999,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: '20px',
-              boxSizing: 'border-box'
-            }}
-          >
+      {createPortal(
+        <AnimatePresence>
+          {selectedMilestone && (
             <motion.div
-              initial={{ scale: 0.93, y: 25 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.93, y: 25 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: '100%',
-                maxWidth: '580px',
-                backgroundColor: '#0c0c10',
-                border: '1px solid #ffffff',
-                boxShadow: '0 30px 80px rgba(0, 0, 0, 0.95), 0 0 40px rgba(255, 255, 255, 0.15)',
-                borderRadius: '20px',
-                padding: isMobile ? '2rem' : '2.8rem',
-                boxSizing: 'border-box',
-                color: '#ffffff'
-              }}
+              className="history-detail-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedMilestone(null)}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '0.85rem',
-                    color: '#ffffff',
-                    fontWeight: '700',
-                    letterSpacing: '2px',
-                    textTransform: 'uppercase'
-                  }}
-                >
+              <motion.div
+                className="history-detail-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="history-detail-title"
+                initial={{ opacity: 0, y: 18, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="history-detail-heading">
+                  <span className="history-detail-eyebrow">
                   {selectedMilestone.year} // {selectedMilestone.company}
-                </span>
+                  </span>
                 <button
+                  type="button"
+                  aria-label="Tutup detail history"
                   onClick={() => setSelectedMilestone(null)}
                   onMouseEnter={onHover}
                   onMouseLeave={onLeave}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    color: '#ffffff',
-                    borderRadius: '50%',
-                    width: '34px',
-                    height: '34px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    fontSize: '1.1rem'
-                  }}
                 >
                   ✕
                 </button>
               </div>
 
-              <h2
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: isMobile ? '1.8rem' : '2.4rem',
-                  fontWeight: '800',
-                  margin: '0 0 1rem 0',
-                  letterSpacing: '-0.025em'
-                }}
-              >
+              <h2 id="history-detail-title">
                 {selectedMilestone.title}
               </h2>
 
-              <p
-                style={{
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '1.02rem',
-                  lineHeight: '1.65',
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  marginBottom: '1.8rem'
-                }}
-              >
+              <p className="history-detail-description">
                 {selectedMilestone.text}
               </p>
 
-              <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.12)', paddingTop: '1.5rem', marginBottom: '1.8rem' }}>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '0.72rem',
-                    letterSpacing: '2px',
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    textTransform: 'uppercase',
-                    marginBottom: '1rem'
-                  }}
-                >
+              <div className="history-detail-contributions">
+                <div className="history-detail-section-label">
                   KEY IMPACT & CONTRIBUTIONS
                 </div>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <ul>
                   {selectedMilestone.details.map((detail, dIdx) => (
-                    <li
-                      key={dIdx}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '10px',
-                        fontFamily: 'var(--font-body)',
-                        fontSize: '0.92rem',
-                        lineHeight: '1.5',
-                        color: 'rgba(255, 255, 255, 0.88)'
-                      }}
-                    >
-                      <span style={{ color: '#ffffff', fontWeight: 'bold' }}>•</span>
+                    <li key={dIdx}>
+                      <span aria-hidden="true">•</span>
                       <span>{detail}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              <div className="history-detail-tech-stack">
                 {selectedMilestone.techStack.map((tech, tIdx) => (
-                  <span
-                    key={tIdx}
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '0.72rem',
-                      padding: '4px 10px',
-                      borderRadius: '8px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      color: '#ffffff',
-                      fontWeight: '600'
-                    }}
-                  >
+                  <span key={tIdx}>
                     {tech}
                   </span>
                 ))}
               </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Global CSS Keyframes untuk Efek Denyut Lintas Garis */}
       <style>{`

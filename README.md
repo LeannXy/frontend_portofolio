@@ -68,7 +68,8 @@ The API directory includes a `Dockerfile`, `.dockerignore`, and `render.yaml`. R
 
 - Login uses the `ADMIN_USERNAME` and `ADMIN_PASSWORD` environment values in the Go API's `.env`.
 - Create, update, and delete portfolio projects.
-- Upload JPEG, PNG, or WebP project images up to 12 MB. The browser crops them to 16:9 and compresses them to WebP before upload.
+- Upload JPEG, PNG, or WebP project images up to 12 MB. The browser crops them to 16:9 and saves high-quality WebP up to 2560 px; small source images are not enlarged.
+- Select a project to open its responsive image preview and short description. Use **Lihat detail** for its shareable `/portfolio/:id` case-study page, or return with **Kembali ke portofolio**. Re-upload older compressed images to replace them with higher-resolution originals.
 - Replace the About profile photo from the protected admin dashboard; public visitors cannot upload a profile image.
 - Convert previously uploaded JPEG project photos to WebP from the projects dashboard.
 - Edit History milestones, About technologies, and social profile links from the admin sidebar.

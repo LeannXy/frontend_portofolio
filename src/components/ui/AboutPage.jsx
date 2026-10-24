@@ -1,12 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { DEFAULT_TECHNOLOGIES } from '../../lib/siteContent.js';
 import { apiAssetUrl } from '../../lib/portfolioApi.js';
 
 export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, technologies = DEFAULT_TECHNOLOGIES, profileImage = '/profile.webp', contact }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [selectedTechnology, setSelectedTechnology] = useState(null);
   const shouldReduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (!selectedTechnology) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setSelectedTechnology(null);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [selectedTechnology]);
 
   // Kurasi Teknologi yang Dipelajari & Digunakan (Sesuai Permintaan)
   const techCategories = [
@@ -506,6 +517,17 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                 return (
                   <motion.div
                     key={tech.name}
+                    className="about-tech-card"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Lihat detail ${tech.name}`}
+                    onClick={() => setSelectedTechnology(tech)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setSelectedTechnology(tech);
+                      }
+                    }}
                     layout={!shouldReduceMotion}
                     initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.96 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -536,7 +558,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                       opacity: isOtherHovered ? 0.32 : 1,
                       filter: isOtherHovered ? 'brightness(0.65)' : 'none',
                       transition: 'opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
-                      cursor: 'default'
+                      cursor: 'pointer'
                     }}
                   >
                     <div
@@ -586,6 +608,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                           {String(idx + 1).padStart(2, '0')}
                         </span>
                         <span
+                          className="about-tech-tag"
                           style={{
                             fontFamily: 'var(--font-mono)',
                             fontSize: '0.64rem',
@@ -604,6 +627,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                       </div>
 
                       <div
+                        className="about-tech-name"
                         style={{
                           fontFamily: 'var(--font-display)',
                           fontSize: '1.3rem',
@@ -618,6 +642,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
                       </div>
 
                       <div
+                        className="about-tech-role"
                         style={{
                           fontFamily: 'var(--font-mono)',
                           fontSize: '0.72rem',
@@ -633,6 +658,7 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
 
                     {/* Deskripsi Singkat */}
                     <p
+                      className="about-tech-description"
                       style={{
                         position: 'relative',
                         zIndex: 2,
@@ -666,6 +692,62 @@ export default function AboutPage({ onBackToHome, isMobile, onHover, onLeave, te
             </AnimatePresence>
           </div>
         </motion.section>
+
+        {createPortal(
+          <AnimatePresence>
+            {selectedTechnology && (
+              <motion.div
+                className="about-tech-detail-overlay"
+                role="presentation"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSelectedTechnology(null)}
+              >
+                <motion.section
+                  className="about-tech-detail"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="about-tech-detail-title"
+                  tabIndex={-1}
+                  initial={{ opacity: 0, y: 18, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                  transition={{ duration: shouldReduceMotion ? 0 : 0.22 }}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <div className="about-tech-detail-heading">
+                    <div>
+                      <span className="about-tech-detail-tag">{selectedTechnology.tag}</span>
+                      <h2 id="about-tech-detail-title">{selectedTechnology.name}</h2>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Tutup detail teknologi"
+                      onClick={() => setSelectedTechnology(null)}
+                      onMouseEnter={onHover}
+                      onMouseLeave={onLeave}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <p className="about-tech-detail-role">{selectedTechnology.role}</p>
+                  <p className="about-tech-detail-description">{selectedTechnology.desc}</p>
+                  <button
+                    type="button"
+                    className="about-tech-detail-close"
+                    onClick={() => setSelectedTechnology(null)}
+                    onMouseEnter={onHover}
+                    onMouseLeave={onLeave}
+                  >
+                    TUTUP
+                  </button>
+                </motion.section>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
 
         {/* BOTTOM STATEMENT & FOOTER */}
         <div

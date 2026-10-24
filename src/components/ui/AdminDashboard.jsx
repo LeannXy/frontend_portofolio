@@ -632,7 +632,7 @@ function ContentEditor({ contentKey, value, onSave }) {
     setDraft((current) => current.map((entry, entryIndex) => {
       if (entryIndex !== index) return entry;
       if (field === 'details' || field === 'techStack') {
-        return { ...entry, [field]: nextValue.split('\n').map((item) => item.trim()).filter(Boolean) };
+        return { ...entry, [field]: nextValue.split('\n') };
       }
       if (field === 'id' || field === 'ratio' || field === 'stemHeight') {
         return { ...entry, [field]: Number(nextValue) };
@@ -663,7 +663,17 @@ function ContentEditor({ contentKey, value, onSave }) {
 
   return (
     <form
-      onSubmit={(event) => { event.preventDefault(); onSave(contentKey, draft); }}
+      onSubmit={(event) => {
+        event.preventDefault();
+        const cleanedDraft = contentKey === 'history'
+          ? draft.map((entry) => ({
+            ...entry,
+            details: (Array.isArray(entry.details) ? entry.details : []).map((item) => item.trim()).filter(Boolean),
+            techStack: (Array.isArray(entry.techStack) ? entry.techStack : []).map((item) => item.trim()).filter(Boolean)
+          }))
+          : draft;
+        onSave(contentKey, cleanedDraft);
+      }}
       style={{ display: 'grid', gap: '1rem', padding: 'clamp(1rem, 3vw, 2rem)', background: '#0a0a0c', border: '1px solid rgba(255,255,255,0.12)' }}
     >
       <div>
@@ -714,12 +724,19 @@ function ContentEditor({ contentKey, value, onSave }) {
                         <option value="design">Desain & Kreatif</option>
                       </select>
                     ) : isLongText ? (
-                      <textarea
-                        rows={isArray ? 3 : 4}
-                        value={isArray ? entry[field].join('\n') : entry[field]}
-                        onChange={(event) => updateEntry(index, field, event.target.value)}
-                        style={{ ...fieldStyle, resize: 'vertical' }}
-                      />
+                      <>
+                        <textarea
+                          rows={isArray ? 4 : 4}
+                          value={isArray ? (Array.isArray(entry[field]) ? entry[field] : []).join('\n') : entry[field]}
+                          onChange={(event) => updateEntry(index, field, event.target.value)}
+                          style={{ ...fieldStyle, resize: 'vertical', minHeight: isArray ? '110px' : undefined }}
+                        />
+                        {isArray && (
+                          <span style={{ color: 'rgba(255,255,255,0.48)', fontSize: '0.68rem', letterSpacing: 0, lineHeight: 1.5 }}>
+                            Satu poin per baris. Tekan Enter untuk menambahkan poin berikutnya.
+                          </span>
+                        )}
+                      </>
                     ) : (
                       <input
                         type={['id', 'ratio', 'stemHeight'].includes(field) ? 'number' : 'text'}

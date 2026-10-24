@@ -19,6 +19,7 @@ function HelixCard({
   totalLength,
   activeProject,
   setHoveredProject,
+  clearHoveredProject,
   clickedProject,
   setClickedProject,
   galleryProgressRef,
@@ -84,7 +85,6 @@ function HelixCard({
 
     // 4. Efek fokus interaktif saat kartu di-hover / di-klik
     const isFocused = activeProject && activeProject.id === proj.id;
-    const hasActive = activeProject !== null;
     const isSelected = clickedProject?.id === proj.id;
     if (previousSelectionRef.current !== isSelected) {
       groupRef.current.traverse((child) => {
@@ -164,8 +164,9 @@ function HelixCard({
     const exitProgress = galleryExitProgressRef.current;
     const exitFade = 1 - exitProgress;
 
-    const targetOpacity = (isFocused ? 1 : (hasActive ? 0.25 : 0.95)) * exitFade;
-    const targetScaleFactor = (isFocused ? 1.15 : 1.0) * (1 - exitProgress * 0.5);
+    const hasClickedSelection = clickedProject !== null;
+    const targetOpacity = (isSelected ? 0 : (isFocused ? 1 : (hasClickedSelection ? 0.25 : 0.95))) * exitFade;
+    const targetScaleFactor = (isSelected ? 1.15 : (isFocused ? 1.12 : 1.0)) * (1 - exitProgress * 0.5);
 
     const targetScaleX = baseScale[0] * targetScaleFactor;
     const targetScaleY = baseScale[1] * targetScaleFactor;
@@ -200,7 +201,7 @@ function HelixCard({
           onPointerOut={(e) => {
             e.stopPropagation();
             document.body.style.cursor = 'auto';
-            setHoveredProject(null);
+            clearHoveredProject();
           }}
           onClick={(e) => {
             e.stopPropagation();
@@ -263,6 +264,7 @@ export default function HeroHelix({
   isLoaded,
   activeProject,
   setHoveredProject,
+  clearHoveredProject,
   clickedProject,
   setClickedProject
 }) {
@@ -350,6 +352,7 @@ export default function HeroHelix({
           totalLength={projects.length}
           activeProject={activeProject}
           setHoveredProject={setHoveredProject}
+          clearHoveredProject={clearHoveredProject}
           clickedProject={clickedProject}
           setClickedProject={setClickedProject}
           galleryProgressRef={galleryProgressRef}

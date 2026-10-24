@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import Lenis from '@studio-freight/lenis';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Preloader from './components/ui/Preloader';
@@ -8,8 +8,9 @@ import MyApproach from './components/ui/MyApproach';
 import EditorialIntro from './components/ui/EditorialIntro';
 import HistoryJourney from './components/ui/HistoryJourney';
 import AboutPage from './components/ui/AboutPage';
+import ProjectDetailPage from './components/ui/ProjectDetailPage';
 import { INITIAL_PROJECTS } from '../shared/initialProjects.js';
-import { apiUrl, normalizeProjects } from './lib/portfolioApi.js';
+import { apiAssetUrl, apiUrl, normalizeProjects } from './lib/portfolioApi.js';
 import { DEFAULT_SITE_CONTENT, normalizeSiteContent } from './lib/siteContent.js';
 import './App.css';
 
@@ -18,17 +19,74 @@ gsap.registerPlugin(ScrollTrigger);
 const HomeScene = lazy(() => import('./components/3d/HomeScene'));
 const AdminDashboard = lazy(() => import('./components/ui/AdminDashboard'));
 
+function getInitialView() {
+  const path = window.location.pathname;
+  if (path === '/admin') return 'admin';
+  if (/^\/portfolio\/[^/]+$/.test(path)) return 'project-detail';
+  return 'home';
+}
+
+function getProjectIdFromPath() {
+  const match = window.location.pathname.match(/^\/portfolio\/([^/]+)$/);
+  if (!match) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return null;
+  }
+}
+
 export default function App() {
   const [loadingComplete, setLoadingComplete] = useState(false);
-  const [currentView, setCurrentView] = useState(() => window.location.pathname === '/admin' ? 'admin' : 'home');
+  const [currentView, setCurrentView] = useState(getInitialView);
+  const [pageIntro, setPageIntro] = useState(null);
+  const pageIntroTimerRef = useRef(null);
+  const pageIntroSequenceRef = useRef(0);
+  const shouldReduceMotion = useReducedMotion();
   const lenisRef = useRef(null);
   const [projects, setProjects] = useState(INITIAL_PROJECTS);
+  const [projectsLoaded, setProjectsLoaded] = useState(false);
+  const [detailProjectId, setDetailProjectId] = useState(getProjectIdFromPath);
+  const [selectedProjectDetail, setSelectedProjectDetail] = useState(null);
   const [projectApiError, setProjectApiError] = useState('');
   const [siteContent, setSiteContent] = useState(DEFAULT_SITE_CONTENT);
+
+  const showPageIntro = useCallback((view) => {
+    const labels = {
+      home: 'WORKS',
+      about: 'ABOUT',
+      admin: 'ADMIN',
+      'project-detail': 'PROJECT'
+    };
+    if (pageIntroTimerRef.current) clearTimeout(pageIntroTimerRef.current);
+    pageIntroSequenceRef.current += 1;
+    setPageIntro({ id: pageIntroSequenceRef.current, label: labels[view] || 'PORTFOLIO' });
+    pageIntroTimerRef.current = setTimeout(() => {
+      setPageIntro(null);
+      pageIntroTimerRef.current = null;
+    }, shouldReduceMotion ? 80 : 360);
+  }, [shouldReduceMotion]);
 
   const [hoveredProject, setHoveredProject] = useState(null);
   const [clickedProject, setClickedProject] = useState(null);
   const activeProject = clickedProject || hoveredProject;
+  const projectHoverTimeoutRef = useRef(null);
+
+  const handleProjectPointerOver = useCallback((project) => {
+    if (projectHoverTimeoutRef.current) {
+      clearTimeout(projectHoverTimeoutRef.current);
+      projectHoverTimeoutRef.current = null;
+    }
+    setHoveredProject(project);
+  }, []);
+
+  const handleProjectPointerOut = useCallback(() => {
+    if (projectHoverTimeoutRef.current) clearTimeout(projectHoverTimeoutRef.current);
+    projectHoverTimeoutRef.current = setTimeout(() => {
+      setHoveredProject(null);
+      projectHoverTimeoutRef.current = null;
+    }, 400);
+  }, []);
 
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isUiHovered, setIsUiHovered] = useState(false);
@@ -82,6 +140,7 @@ export default function App() {
 
     if (currentView !== 'home') {
       if (window.location.pathname !== '/') window.history.pushState({}, '', '/');
+      showPageIntro('home');
       setCurrentView('home');
       requestAnimationFrame(() => requestAnimationFrame(() => moveToSection()));
       return;
@@ -93,6 +152,10 @@ export default function App() {
     if (view === 'home') {
       if (currentView !== 'home') {
         if (window.location.pathname !== '/') window.history.pushState({}, '', '/');
+        showPageIntro('home');
+        setDetailProjectId(null);
+        setSelectedProjectDetail(null);
+        setClickedProject(null);
         setCurrentView('home');
         requestAnimationFrame(() => requestAnimationFrame(() => scrollToPosition(0, 'works')));
       } else {
@@ -100,6 +163,7 @@ export default function App() {
       }
       return;
     }
+    if (currentView !== view) showPageIntro(view);
     const nextPath = view === 'admin' ? '/admin' : '/';
     if (window.location.pathname !== nextPath) {
       window.history.pushState({}, '', nextPath);
@@ -108,13 +172,26 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
+  const navigateToProject = (project) => {
+    const projectId = String(project.id ?? project.ID);
+    showPageIntro('project-detail');
+    window.history.pushState({}, '', `/portfolio/${encodeURIComponent(projectId)}`);
+    setDetailProjectId(projectId);
+    setSelectedProjectDetail(project);
+    setClickedProject(null);
+    setCurrentView('project-detail');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
   const refreshProjects = async () => {
     try {
       const response = await fetch(apiUrl('/api/projects'));
       if (!response.ok) throw new Error('Tidak dapat memuat daftar proyek dari backend.');
       setProjects(normalizeProjects(await response.json()));
+      setProjectsLoaded(true);
       setProjectApiError('');
     } catch (error) {
+      setProjectsLoaded(true);
       setProjectApiError(error.message);
       throw error;
     }
@@ -139,14 +216,24 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    return () => {
+      if (projectHoverTimeoutRef.current) clearTimeout(projectHoverTimeoutRef.current);
+      if (pageIntroTimerRef.current) clearTimeout(pageIntroTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
     const handlePopState = () => {
-      const nextView = window.location.pathname === '/admin' ? 'admin' : 'home';
+      const nextView = getInitialView();
+      showPageIntro(nextView);
+      setDetailProjectId(getProjectIdFromPath());
+      setSelectedProjectDetail(null);
       setCurrentView(nextView);
       if (nextView === 'home') setActiveSection('works');
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [showPageIntro]);
 
   useEffect(() => {
     refreshProjects().catch((error) => {
@@ -285,7 +372,7 @@ export default function App() {
     if (currentView !== 'home') return;
 
     const lenis = new Lenis({
-      duration: 0.9,
+      duration: 1.05,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true
     });
@@ -311,7 +398,7 @@ export default function App() {
           : window.innerHeight;
         return `+=${Math.max(1, transitionDistance)}`;
       },
-      scrub: 0.55
+      scrub: 0.7
     };
 
     mm.add("(min-width: 768px)", () => {
@@ -719,7 +806,8 @@ export default function App() {
                     loadingComplete={loadingComplete}
                     activeProject={activeProject}
                     clickedProject={clickedProject}
-                    setHoveredProject={setHoveredProject}
+                    setHoveredProject={handleProjectPointerOver}
+                    clearHoveredProject={handleProjectPointerOut}
                     setClickedProject={setClickedProject}
                     isMainTrackVisible={isMainTrackVisible && currentView === 'home'}
                   />
@@ -949,9 +1037,35 @@ export default function App() {
 
       {/* Active Project Modal / Case Study Drawer */}
       <AnimatePresence>
+        {clickedProject && currentView === 'home' && (
+          <motion.div
+            key={clickedProject.id ?? clickedProject.ID}
+            className="project-preview-frame"
+            data-text-side={clickedProject.textSide === 'right' ? 'right' : 'left'}
+            initial={{ opacity: 0, scale: 0.82 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.86 }}
+            transition={{ type: 'spring', stiffness: 190, damping: 24, mass: 0.8 }}
+          >
+            <img
+              src={apiAssetUrl(clickedProject.image)}
+              alt={`Pratinjau proyek ${clickedProject.title}`}
+              fetchPriority="high"
+              decoding="async"
+              draggable="false"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
         {activeProject && currentView === 'home' && (
           <motion.div
+            key={activeProject.id ?? activeProject.ID}
             className="project-detail-panel"
+            onMouseEnter={() => handleProjectPointerOver(activeProject)}
+            onMouseLeave={() => {
+              if (!clickedProject) handleProjectPointerOut();
+            }}
             initial={{
               opacity: 0,
               x: isMobile ? '-50%' : (activeProject.textSide === 'left' ? -40 : 40),
@@ -1036,7 +1150,7 @@ export default function App() {
             <div style={{ height: '1px', width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.12)' }} />
 
             {/* Description */}
-            <p style={{
+            <p className="project-detail-description" style={{
               fontFamily: 'var(--font-body)',
               fontSize: '0.92rem',
               margin: 0,
@@ -1048,59 +1162,88 @@ export default function App() {
             </p>
 
             {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-              {activeProject.link && (
-                <a
-                  href={activeProject.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onMouseEnter={onHover}
-                  onMouseLeave={onLeave}
-                  style={{
-                    padding: '12px 24px',
-                    backgroundColor: '#ffffff',
-                    color: '#050505',
-                    textDecoration: 'none',
-                    fontFamily: 'var(--font-mono)',
-                    fontWeight: '700',
-                    fontSize: '0.78rem',
-                    letterSpacing: '1.5px',
-                    textTransform: 'uppercase',
-                    borderRadius: 0,
-                    pointerEvents: 'auto',
-                    transition: 'all 0.3s ease',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <span>Explore Case</span>
-                  <span>↗</span>
-                </a>
-              )}
+            <div className="project-detail-actions" style={{ marginTop: '8px' }}>
+              <button
+                className="project-detail-action project-detail-action-primary"
+                type="button"
+                onClick={() => navigateToProject(activeProject)}
+                onMouseEnter={onHover}
+                onMouseLeave={onLeave}
+              >
+                Lihat detail
+                <span aria-hidden="true">↗</span>
+              </button>
               {clickedProject && (
                 <button
+                  className="project-detail-action"
+                  type="button"
                   onClick={() => setClickedProject(null)}
                   onMouseEnter={onHover}
                   onMouseLeave={onLeave}
-                  style={{
-                    padding: '12px 20px',
-                    backgroundColor: 'transparent',
-                    color: 'white',
-                    border: '1px solid rgba(255, 255, 255, 0.25)',
-                    borderRadius: 0,
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '0.75rem',
-                    letterSpacing: '1.5px',
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
                 >
                   Close
                 </button>
               )}
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {currentView === 'project-detail' && (
+          <ProjectDetailPage
+            key={detailProjectId}
+            project={
+              projects.find((project) => String(project.id ?? project.ID) === detailProjectId)
+              ?? (String(selectedProjectDetail?.id ?? selectedProjectDetail?.ID) === detailProjectId
+                ? selectedProjectDetail
+                : null)
+            }
+            isLoading={!projectsLoaded && !selectedProjectDetail}
+            loadError={projectApiError}
+            onRetry={() => refreshProjects().catch((error) => console.error('Portfolio API could not be loaded:', error))}
+            onBackToPortfolio={() => navigateTo('home')}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence mode="wait">
+        {pageIntro && (
+          <motion.div
+            key={pageIntro.id}
+            aria-hidden="true"
+            initial={{ clipPath: 'inset(0 0 0 0)' }}
+            animate={{ clipPath: 'inset(0 0 0 0)' }}
+            exit={{ clipPath: 'inset(0 0 100% 0)' }}
+            transition={{ duration: shouldReduceMotion ? 0.08 : 0.46, ease: [0.76, 0, 0.24, 1] }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 10001,
+              display: 'grid',
+              placeItems: 'center',
+              overflow: 'hidden',
+              pointerEvents: 'none',
+              background: 'linear-gradient(145deg, #111 0%, #050505 58%, #0b0b0b 100%)',
+              color: '#fff'
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 18, letterSpacing: '0.34em' }}
+              animate={{ opacity: 1, y: 0, letterSpacing: '0.18em' }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: shouldReduceMotion ? 0.08 : 0.24, ease: 'easeOut' }}
+              style={{
+                display: 'grid',
+                justifyItems: 'center',
+                gap: '14px',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'clamp(0.8rem, 2.4vw, 1.05rem)',
+                fontWeight: 600
+              }}
+            >
+              <span>{pageIntro.label}</span>
+              <span style={{ width: '44px', height: '1px', background: 'rgba(255,255,255,0.7)' }} />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

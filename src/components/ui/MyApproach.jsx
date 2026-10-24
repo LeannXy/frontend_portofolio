@@ -9,11 +9,11 @@ const APPROACH_PILLARS = [
   {
     num: "01",
     title: "Build",
-    desc: "Turning ideas into functional web applications.",
+    desc: "Turning ideas into functional web applications through coding and hands-on projects.",
     details: [
-      "Production-ready WebGL & React architectures",
-      "Robust state machines & clean scalable patterns",
-      "Interactive 3D geometry & tactile animations"
+      "Building web applications with Laravel, PHP, and MySQL.",
+      "Developing responsive interfaces using HTML, CSS, and Tailwind CSS.",
+      "Creating practical projects, from online stores to school information systems."
     ],
     tag: "EXECUTION"
   },
@@ -22,9 +22,9 @@ const APPROACH_PILLARS = [
     title: "Learn",
     desc: "Understanding concepts through practice and experimentation.",
     details: [
-      "Continuous exploration of emerging web standards",
-      "Dissecting complex graphics shaders & physics math",
-      "Iterative prototyping with rapid feedback loops"
+      "Exploring new frameworks, programming concepts, and development tools.",
+      "Learning through school assignments, independent projects, and real-world problems.",
+      "Understanding the code behind each feature instead of just making it work."
     ],
     tag: "MASTERY"
   },
@@ -33,20 +33,20 @@ const APPROACH_PILLARS = [
     title: "Use AI",
     desc: "Using AI to assist development, debugging, and exploration.",
     details: [
-      "AI-accelerated code generation & refactoring",
-      "Algorithmic optimization & automated testing",
-      "Intelligent workflows that expand creative limits"
+      "Using AI tools to brainstorm ideas and explore possible solutions.",
+      "Debugging errors, reviewing code, and understanding unfamiliar concepts.",
+      "Turning ideas into prototypes while learning to evaluate and improve AI-generated code."
     ],
     tag: "SYNERGY"
   },
   {
     num: "04",
     title: "Improve",
-    desc: "Refining projects and learning from every challenge.",
+    desc: "Refining projects, improving code quality, and growing through experimentation and challenges.",
     details: [
-      "Obsessive polish on 60 FPS frame budgets",
-      "Accessibility & responsive mobile ergonomics",
-      "Elevating UI aesthetics to Awwwards caliber"
+      "Refining UI/UX, responsiveness, and the overall user experience.",
+      "Improving code structure, debugging skills, and application reliability",
+      "Learning from mistakes and continuously developing as a future software developer."
     ],
     tag: "REFINEMENT"
   }

@@ -1,4 +1,4 @@
-export async function convertImageToWebP(file, { aspectRatio, maxWidth = 1920, maxHeight = 1920 } = {}) {
+export async function convertImageToWebP(file, { aspectRatio, maxWidth = 2560, maxHeight = 2560 } = {}) {
   if (!file?.type.startsWith('image/')) {
     throw new Error('Pilih file gambar yang valid.');
   }
@@ -39,7 +39,7 @@ export async function convertImageToWebP(file, { aspectRatio, maxWidth = 1920, m
       canvas.toBlob((result) => {
         if (result) resolve(result);
         else reject(new Error('Gambar gagal dikompres ke WebP.'));
-      }, 'image/webp', 0.82);
+      }, 'image/webp', 0.92);
     });
     if (blob.type !== 'image/webp') {
       throw new Error('Browser ini tidak mendukung kompresi WebP.');
