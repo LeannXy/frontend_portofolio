@@ -11,12 +11,15 @@ export function apiAssetUrl(path) {
 }
 
 export function normalizeProject(project) {
+  const createdAt = project.createdAt ?? project.created_at ?? project.CreatedAt ?? '';
+  const createdYear = createdAt ? new Date(createdAt).getFullYear() : '';
   return {
     ...project,
     id: project.id ?? project.ID,
+    createdAt,
     image: project.image ?? project.image_url,
     category: project.category ?? project.tech_stack ?? '',
-    year: String(project.year ?? (project.created_at ? new Date(project.created_at).getFullYear() : '')),
+    year: String(project.year ?? createdYear),
     link: project.link ?? '',
     textSide: project.textSide ?? project.text_side ?? 'left',
     sortOrder: project.sortOrder ?? project.sort_order ?? 0
@@ -29,11 +32,11 @@ export function sortProjectsByYearAndUpload(projects) {
     const yearB = Number.parseInt(String(b.year ?? '').match(/\d{4}/)?.[0] ?? '', 10) || 0;
     if (yearA !== yearB) return yearB - yearA;
 
-    const uploadedAtA = Date.parse(a.created_at ?? a.createdAt ?? '') || 0;
-    const uploadedAtB = Date.parse(b.created_at ?? b.createdAt ?? '') || 0;
+    const uploadedAtA = Date.parse(a.createdAt ?? a.created_at ?? a.CreatedAt ?? '') || 0;
+    const uploadedAtB = Date.parse(b.createdAt ?? b.created_at ?? b.CreatedAt ?? '') || 0;
     if (uploadedAtA !== uploadedAtB) return uploadedAtB - uploadedAtA;
 
-    return Number(a.id ?? a.ID ?? 0) - Number(b.id ?? b.ID ?? 0);
+    return Number(b.id ?? b.ID ?? 0) - Number(a.id ?? a.ID ?? 0);
   });
 }
 
