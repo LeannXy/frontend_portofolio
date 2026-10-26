@@ -1,14 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import { apiUrl } from '../../lib/portfolioApi.js';
+import { DEFAULT_SOCIALS } from '../../lib/siteContent.js';
 
 // Data 4 Akun Media Sosial dengan Logo Vektor Resmi
 const SOCIAL_FLOATING_LOGOS = [
   {
     id: "github",
     name: "GITHUB",
-    handle: "@BILLEAN",
-    url: "https://github.com",
     position: { top: "16%", left: "12%" }, // Di sekitar atas-kiri tulisan
     floatClass: "float-orbit-1",
     icon: (
@@ -20,8 +19,6 @@ const SOCIAL_FLOATING_LOGOS = [
   {
     id: "linkedin",
     name: "LINKEDIN",
-    handle: "CONNECT ↗",
-    url: "https://linkedin.com",
     position: { top: "18%", right: "12%" }, // Di sekitar atas-kanan tulisan
     floatClass: "float-orbit-2",
     icon: (
@@ -33,8 +30,6 @@ const SOCIAL_FLOATING_LOGOS = [
   {
     id: "tiktok",
     name: "TIKTOK",
-    handle: "@LEANN_DEV",
-    url: "https://tiktok.com",
     position: { bottom: "18%", left: "14%" }, // Di sekitar bawah-kiri tulisan
     floatClass: "float-orbit-3",
     icon: (
@@ -46,8 +41,6 @@ const SOCIAL_FLOATING_LOGOS = [
   {
     id: "instagram",
     name: "INSTAGRAM",
-    handle: "@BILLEAN.UP",
-    url: "https://instagram.com",
     position: { bottom: "18%", right: "14%" }, // Di sekitar bawah-kanan tulisan
     floatClass: "float-orbit-4",
     icon: (
@@ -66,7 +59,8 @@ export default function HistoryEnding({
   isMobile,
   onHover,
   onLeave,
-  contactEmail
+  contactEmail,
+  socials = DEFAULT_SOCIALS
 }) {
   const containerRef = useRef(null);
   const glowRef = useRef(null);
@@ -236,16 +230,22 @@ export default function HistoryEnding({
       {/* 4 LOGO MEDIA SOSIAL MELAYANG-LAYANG DI SEKITAR TULISAN                    */}
       {/* ========================================================================= */}
       {SOCIAL_FLOATING_LOGOS.map((soc) => {
+        const social = socials[soc.id] ?? DEFAULT_SOCIALS[soc.id];
+        const url = social.url?.trim() || '';
         // Efek magnetik ringan: logo tertarik ke kursor saat kursor mendekat
         return (
           <a
             key={soc.id}
-            href={soc.url}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={url || undefined}
+            target={url ? '_blank' : undefined}
+            rel={url ? 'noopener noreferrer' : undefined}
+            aria-disabled={!url}
+            onClick={(event) => {
+              if (!url) event.preventDefault();
+            }}
             onMouseEnter={onHover}
             onMouseLeave={onLeave}
-            aria-label={soc.name}
+            aria-label={url ? `${social.label || soc.name} profile` : `${social.label || soc.name} link is not configured`}
             className={`floating-social-badge ${soc.floatClass}`}
             style={{
               position: 'absolute',
@@ -265,7 +265,7 @@ export default function HistoryEnding({
               color: '#ffffff',
               textDecoration: 'none',
               boxShadow: '0 12px 35px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 255, 255, 0.08)',
-              cursor: 'pointer',
+              cursor: url ? 'pointer' : 'default',
               transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s, border-color 0.3s, box-shadow 0.3s'
             }}
           >
@@ -280,7 +280,7 @@ export default function HistoryEnding({
                 fontWeight: '700'
               }}
             >
-              {soc.name}
+              {social.label || soc.name}
             </span>
           </a>
         );

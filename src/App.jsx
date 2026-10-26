@@ -1008,6 +1008,7 @@ export default function App() {
               onContactActive={handleContactActive}
               timelineData={siteContent.history}
               contactEmail={siteContent.contact.email}
+              socials={siteContent.socials}
             />
       </div>
 

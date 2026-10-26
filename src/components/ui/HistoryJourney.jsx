@@ -87,7 +87,7 @@ function positionHistoryMilestoneCard(container, path, pathLength, timelineData,
   activeCard.style.top = `${screenCenterY - screenNodeY}px`;
 }
 
-export default function HistoryJourney({ isMobile, onHover, onLeave, onContactActive, timelineData = DEFAULT_HISTORY, contactEmail }) {
+export default function HistoryJourney({ isMobile, onHover, onLeave, onContactActive, timelineData = DEFAULT_HISTORY, contactEmail, socials }) {
   const containerRef = useRef(null);
   const pathRef = useRef(null);
   const worldRef = useRef(null);
@@ -870,6 +870,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
         onHover={onHover}
         onLeave={onLeave}
         contactEmail={contactEmail}
+        socials={socials}
       />
       {/* ========================================================================= */}
       {/* MODAL PENCAPAIAN DETAIL SAAT KARTU MILSTONE DIKLIK                      */}
