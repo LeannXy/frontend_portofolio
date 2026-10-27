@@ -637,16 +637,13 @@ body {
   .history-milestone-card {
     width: min(320px, calc(100vw - 32px)) !important;
     max-width: calc(100vw - 32px) !important;
-    max-height: clamp(180px, 54dvh, 420px) !important;
+    max-height: clamp(220px, 58dvh, 500px) !important;
     padding: 12px !important;
     background: rgba(5, 5, 5, 0.98) !important;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-radius: 12px !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
+    overflow: hidden !important;
   }
 
   .history-milestone-card h3 {
@@ -661,10 +658,12 @@ body {
 
   .history-milestone-details {
     min-width: 0;
+    max-height: 100%;
     padding: 10px 12px !important;
     border-radius: 12px !important;
     gap: 7px !important;
-    overflow-wrap: anywhere;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .history-milestone-meta {
@@ -744,6 +743,45 @@ body {
   word-break: break-word;
 }
 
+.history-milestone-description,
+.history-milestone-role {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.history-milestone-description {
+  -webkit-line-clamp: 3;
+}
+
+.history-milestone-role {
+  -webkit-line-clamp: 1;
+}
+
+.history-milestone-tech-stack {
+  flex: 0 0 auto;
+}
+
+.history-milestone-details {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+}
+
+.history-milestone-details::-webkit-scrollbar {
+  display: block;
+  width: 4px;
+}
+
+.history-milestone-details::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.history-milestone-detail-button {
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+
 .history-detail-overlay {
   position: fixed;
   inset: 0;
@@ -759,11 +797,14 @@ body {
   height: 100dvh !important;
   overflow-y: auto;
   overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .history-detail-modal {
   width: min(100%, 560px);
   max-height: calc(100dvh - 40px);
+  min-height: 0;
+  flex: 0 0 auto;
   padding: clamp(1.25rem, 5vw, 2.25rem);
   box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.28);
@@ -772,6 +813,33 @@ body {
   color: #ffffff;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.7);
   overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+}
+
+.history-detail-modal::-webkit-scrollbar {
+  display: block;
+  width: 5px;
+}
+
+.history-detail-modal::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.contact-form-overlay {
+  z-index: 10001 !important;
+  height: 100dvh !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom)) !important;
+}
+
+.contact-form-card {
+  max-height: calc(100dvh - 40px);
   overflow-y: auto;
   overscroll-behavior: contain;
 }

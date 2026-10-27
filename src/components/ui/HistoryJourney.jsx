@@ -649,8 +649,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
                   width: isMobile ? 'min(320px, calc(100vw - 32px))' : '360px',
                   maxWidth: 'calc(100vw - 32px)',
                   maxHeight: 'clamp(220px, 58dvh, 500px)',
-                  overflowX: 'hidden',
-                  overflowY: 'auto',
+                  overflow: 'hidden',
                   boxSizing: 'border-box',
                   padding: isMobile ? '14px' : '18px',
                   background: 'rgba(5, 5, 5, 0.94)',
@@ -665,6 +664,8 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
                     ? 'translateY(-50%) scale(var(--history-card-scale, 1))'
                     : 'translateY(-50%) scale(calc(var(--history-card-scale, 1) * 0.97))',
                   transition: 'opacity 0.3s ease, transform 0.3s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
                   zIndex: 40
                 }}
               >
@@ -687,6 +688,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
 
                 {/* Deskripsi Teks Sesuai Gambar */}
                 <p
+                  className="history-milestone-description"
                   style={{
                     fontFamily: 'var(--font-body)',
                     fontSize: '0.94rem',
@@ -721,12 +723,17 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
                           : '0 10px 25px rgba(0, 0, 0, 0.5)',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '10px'
+                        gap: '10px',
+                        flex: '0 1 auto',
+                        minHeight: 0,
+                        overflowY: 'auto',
+                        overscrollBehavior: 'contain'
                       }}
                     >
                       {/* Sub-label & Status Badge */}
                       <div className="history-milestone-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                         <span
+                          className="history-milestone-role"
                           style={{
                             fontFamily: 'var(--font-mono)',
                             fontSize: '0.68rem',
@@ -755,8 +762,8 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
                       </div>
 
                       {/* Tech Stack Pills */}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                        {item.techStack.map((tech, tIdx) => (
+                      <div className="history-milestone-tech-stack" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {item.techStack.slice(0, 3).map((tech, tIdx) => (
                           <span
                             key={tIdx}
                             style={{
@@ -772,10 +779,27 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
                             {tech}
                           </span>
                         ))}
+                        {item.techStack.length > 3 && (
+                          <span
+                            aria-label={`${item.techStack.length - 3} tech stack lainnya`}
+                            style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '0.64rem',
+                              padding: '2px 7px',
+                              borderRadius: '6px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                              border: '1px solid rgba(255, 255, 255, 0.12)',
+                              color: 'rgba(255, 255, 255, 0.9)'
+                            }}
+                          >
+                            +{item.techStack.length - 3}
+                          </span>
+                        )}
                       </div>
 
                       {/* Tombol Interaktif "Jelajahi Arsip Periode Ini" */}
                       <button
+                        className="history-milestone-detail-button"
                         onClick={() => setSelectedMilestone(item)}
                         onMouseEnter={onHover}
                         onMouseLeave={onLeave}
@@ -890,6 +914,7 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="history-detail-title"
+                data-lenis-prevent
                 initial={{ opacity: 0, y: 18, scale: 0.97 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 12, scale: 0.98 }}

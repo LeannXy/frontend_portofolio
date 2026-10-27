@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 
 // Warna biru seragam di seluruh elemen (Solid, tanpa gradasi yang berbeda-beda)
 const UNIFORM_BLUE = '#ffffff';
@@ -479,30 +480,31 @@ export default function MyApproach({ isMobile, onHover, onLeave }) {
       </div>
 
       {/* MODAL DETAIL KETIKA KARTU DIKLIK */}
-      <AnimatePresence>
-        {selectedPillar && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedPillar(null)}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100vw',
-              height: '100vh',
-              backgroundColor: 'rgba(0, 0, 0, 0.85)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              zIndex: 999,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: '20px',
-              boxSizing: 'border-box'
-            }}
-          >
+      {createPortal(
+        <AnimatePresence>
+          {selectedPillar && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedPillar(null)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                width: '100vw',
+                minHeight: '100dvh',
+                backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                zIndex: 1000,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: 'max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom))',
+                boxSizing: 'border-box',
+                overflowY: 'auto'
+              }}
+            >
             <motion.div
               initial={{ scale: 0.94, y: 20 }}
               animate={{ scale: 1, y: 0 }}
@@ -512,6 +514,8 @@ export default function MyApproach({ isMobile, onHover, onLeave }) {
               style={{
                 width: '100%',
                 maxWidth: '560px',
+                maxHeight: 'calc(100dvh - 40px)',
+                overflowY: 'auto',
                 backgroundColor: '#0d0d12',
                 border: `1px solid ${UNIFORM_BLUE}`,
                 boxShadow: `0 30px 80px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 255, 255, 0.1)`,
@@ -614,9 +618,11 @@ export default function MyApproach({ isMobile, onHover, onLeave }) {
                 </ul>
               </div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </section>
   );
 }

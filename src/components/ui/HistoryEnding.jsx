@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { apiUrl } from '../../lib/portfolioApi.js';
 import { DEFAULT_SOCIALS } from '../../lib/siteContent.js';
 
@@ -401,7 +402,8 @@ export default function HistoryEnding({
       {/* ========================================================================= */}
       {/* MODAL EMAIL FORM (MUNCUL KETIKA LET'S CONNECT DIKLIK)                     */}
       {/* ========================================================================= */}
-      <AnimatePresence>
+      {createPortal(
+        <AnimatePresence>
         {isFormOpen && (
           <motion.div
             className="contact-form-overlay"
@@ -687,7 +689,9 @@ export default function HistoryEnding({
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Global CSS Animasi Floating Orbit untuk Logo Media Sosial */}
       <style>{`
