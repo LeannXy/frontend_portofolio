@@ -209,6 +209,13 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
         force3D: true,
       });
 
+      const milestoneSnapPoints = [
+        0,
+        ...timelineData.map((item) => item.ratio * 0.78),
+        0.78,
+        1
+      ].sort((a, b) => a - b);
+
       ScrollTrigger.create({
         id: 'history-journey-pinned',
         trigger: container,
@@ -217,6 +224,12 @@ export default function HistoryJourney({ isMobile, onHover, onLeave, onContactAc
         pin: true,
         pinSpacing: true,
         scrub: 1.1, // Gerakan kamera halus dengan inersia
+        snap: {
+          snapTo: gsap.utils.snap(milestoneSnapPoints),
+          delay: 0.12,
+          duration: { min: 0.18, max: 0.55 },
+          ease: 'power2.inOut'
+        },
         anticipatePin: 1,
         onUpdate: (self) => {
           updateScene(self.progress);
